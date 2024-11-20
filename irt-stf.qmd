@@ -1,0 +1,1454 @@
+---
+title: "Test length doesn’t matter (too much): Item response theory procedures for
+shortening tests"
+author: "Ottavia M. Epifania & Friends"
+format: 
+  revealjs: 
+    theme: mytheme.scss
+    logo: "www/psicostat.jpg"
+    footer: "Lab meeting @ Milano-Bicocca"
+    transition: slide
+    background-transition: fade
+# background-opacity: "0.45"
+#    data-background-size: 400px, cover
+#    data-background-position: 50% 10%, center
+server: shiny
+---
+
+
+```{css include = FALSE}
+.reveal .slide-logo {
+  height: 100px !important;
+  width: 100px !important;
+  max-width: unset !important;
+  max-height: unset !important;
+}
+.title-hex{
+  height: 10px;
+  align: right;
+  float: right;
+}
+.h3 {
+text-align: center;
+}
+```
+
+
+
+```{r, setup, include=FALSE}
+library(knitr)
+library(shiny)
+library(ggplot2)
+library(tidyverse)
+library(emoji)
+hexes <- function(x) {
+  x <- rev(sort(x))
+  markup <- function(img) glue::glue('<img width="10%" height="10%" src="www/{img}.jpg" class="title-hex">')
+  res <- purrr::map_chr(x, markup)
+  paste0(res, collapse = "")
+}
+IRT <- function(theta, a = 1, b = 0, c = 0,e = 1) {
+  y <- c + (e - c) * exp(a * (theta - b)) / (1 + exp(a * (theta - b)))
+  return(y)
+}
+# calcola l'IIF per un item specifico
+i_info <- function(b, a=1,c=0, e= 1,  theta = seq(-5,5,length.out=1000)){
+  Ii = (a^2)*IRT(theta, b = b, a = a, e = e )*(1- IRT(theta, b = b, a = a, e = e ))
+  return(Ii)
+}
+# calcola l'IIF di tutti gli item e restituisce in una lista di lunghezza ugaule a tutti 
+# gli item per cui si è calcolata l'IIF
+item_info <- function(ipar, theta = seq(-5,5,length.out=1000)){
+  item <- NULL
+  if (any(colnames(ipar) == "e")) {
+    for(i in 1:nrow(ipar)){
+      item[[i]] <- i_info(b = ipar[i, "b"],a = ipar[i, "a"], e = ipar[i, "e"], theta = theta)
+    } 
+  } else {
+    for(i in 1:nrow(ipar)){
+      item[[i]] <- i_info(b = ipar[i, "b"],a = ipar[i, "a"], theta = theta)
+    }
+  }
+  item = data.frame(do.call("cbind", item))
+  colnames(item) = rownames(ipar)
+  return(item)
+}
+set.seed(999)
+```
+
+# Introduction
+
+## Latent variables
+
+<br>
+
+- Variables that *cannot be directly observed* $\rightarrow$ **Latent variables** (e.g., Intelligence)
+
+- Inferred from  directly observed  indicators $\rightarrow$ **Observed variables** (e.g., the responses to the Raven's matrices)
+
+<br>
+
+.  .  .
+
+- *Operazionalization* of the latent variable is crucial 
+
+
+## Example
+
+Let's say we have a friend, Giorgio, and after observing what he does usually, we see that:
+
+- He has a lot of friends
+
+- He feels comfortable in social situations involving many people  
+
+- He goes the extra mile to stay in touch with people 
+
+- $\ldots$
+
+Giorgio's behaviors (***observed variables***) can be explained by considering the ***latent variable*** <span style="color:#9B0014;">extraversion</span>
+
+
+## Modeling latent variables
+
+The latent variables must be linked to the observed variables$\rightarrow$ mathematical and statistical models
+
+Assumptions: 
+
+-  The latent variables are the underlying cause of the observed variables 
+
+- *Local independence*: The correlation between the observed variables disappears after controlling for the influence of the latent variable
+
+```{r echo = F, out.width="60%"}
+#| fig-align: "center"
+knitr::include_graphics("www/latent.png")
+```
+
+
+## To each its own
+
+```{r out.width="80%", echo = F}
+#| fig-align: "center"
+knitr::include_graphics("www/mavl1.png")
+```
+
+IRT models and Rasch model $\rightarrow$ **Models for latent trait** 
+
+
+## IRT vs. CTT
+
+<br>
+
+IRT models and Classical Test Theory (CTT) models have the same aim $\rightarrow$ "measuring" people $\rightarrow$ locate the position of each person on a latent trait
+
+<br>
+
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+**IRT**
+:::
+
+<br>
+
+::: {.r-stack}
+Focus $\rightarrow$ Items
+:::
+
+:::
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+
+**CTT**
+:::
+
+<br>
+
+::: {.r-stack}
+
+Focus $\rightarrow$ Test
+
+:::
+:::
+
+::::
+
+
+## Basics of IRT
+
+<br>
+
+The probability of an observed response (observed variable) depends on the characteristics of both the person and the item
+
+The characteristics of the <span style="color:#9B0014;">person</span> can be described by a parameter of the person  $\rightarrow$  latent trait (e.g., intelligence, self-esteem, extraversion etc.)
+
+
+
+The characteristics of the <span style="color:#3a5fcd;">item</span> can be described by one or more parameters (**difficulty**, **discrimination**, **guessing**, **careless error**)
+
+The item, the person and their characteristics are located on the same latent trait
+
+
+## To each its own... IRT model 
+
+<br>
+
+Different IRT models according to:
+
+- **Latent trait**: 
+
+::: {.fragment .highlight-red fragment-index=2}
+
+  - Uni dimensional model
+
+:::
+
+  - Multidimensional model
+  
+- **Response categories**: 
+
+::: {.fragment .highlight-red fragment-index=2}
+
+  - Dichotomous items (Two response categories, e.g., true/false, agree/disagree)
+
+:::
+
+  - Polytomous items (at least 3 response categories, e.g., Likert-type scale)
+  
+## Models for dichotomous items
+
+<br>
+
+These models can be distinguished according to the number of parameters describing the characteristics of the items. 
+
+- One-Parameter Logistic Model (1-PL)
+
+- Two-Parameter Logistic Model (2-PL; Birnbaum, 1968)
+
+- Three-Parameter Logistic Model (3-PL; Lord, 1980)
+
+- Four-Parameter Logistic Model (4-PL; Barton & Lord, 1981)
+
+## In general
+
+<br>
+
+
+- Person and items parameters are on the same latent trait 
+
+- As the distance on the latent trait between the person parameter and the item parameter increases, the probability of a correct response changes 
+
+- When the parameter of the person matches the parameter of the item, then the probability of observing a correct response is 50% (well....not always)
+
+## The 1-Parameter Logistic Model 
+
+$$P(x_{pi} = 1| \theta_p, b_i) = \dfrac{\exp(\theta_p - b_i)}{1 + \exp(\theta_p - b_i)}$$
+
+
+::: {.panel-tabset}
+
+## One item, one $b_i$
+
+
+```{r echo = F, out.width = "85%"}
+par(mar = c(5,7,4,2) + 0.1) 
+theta = seq(-4,4, length.out = 1500)
+plot(theta, IRT(theta, b = 1, a = 1),
+     cex.lab= 2, 
+     cex.axis =1, cex.main = 2,
+       xlab = expression(theta), 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ")")),
+       xlim = c(-4, 4), ylim = c(0, 1), 
+     type = "l", lwd = 3, 
+     col = "royalblue", main = "Item Characteristic Curve (ICC)")
+
+mtext("b = 1", side = 1, at = 1, cex = 1.5, padj = 1)
+
+segments(-7, 0.5, 
+         1, 0.5, 
+         col = "red", lty = 3, lwd = 3)
+segments(1, -0.5, 
+         1, 0.5, 
+         col = "red", lty = 3, lwd = 3)
+```
+
+
+## Multiple items, mutliple $b_i$
+
+
+```{r, out.width = "85%"}
+b = seq(-2.5, 2.5, length = 5)
+a = rep(1, length(b))
+
+my_colors <- RColorBrewer::brewer.pal(6, "Blues")[2:6]
+
+par(mar = c(5,7,4,2) + 0.1) 
+plot(theta, IRT(theta, b = b[1], a = a[1]),
+     cex.lab= 2, 
+     cex.axis =1, cex.main = 2,
+       xlab = expression(theta), ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ")")), 
+     main = "ICC - Different locations",
+       xlim = c(-4, 4), ylim = c(0, 1), 
+     type = "l", lwd = 3, 
+     col = my_colors[1])
+  
+segments(-7, 0.5, 
+         b[1], 0.5, 
+         col = "red", lty = 3, lwd = 3)
+segments(b[1], -0.5, 
+         b[1], 0.5, 
+         col = "red", lty = 3, lwd = 3)
+
+si = data.frame(item1 = b[1], item2 = b[2], item3 = b[3], 
+                item4 = b[4], item5 = b[5])
+rownames(si) = "b"
+text(x= -2, y = 0.8, colnames(si)[1], col = my_colors[1], cex = 2)
+
+
+
+for ( i in 2:length(b)) {
+  lines(theta, IRT(theta, b=b[i], 
+                a = 1), 
+      lty = 1, lwd=3, col = my_colors[i])
+  segments(-7, 0.5, 
+         b[i], 0.5, 
+         col = "red", lty = 3, lwd = 3)
+segments(b[i], -0.5, 
+         b[i], 0.5, 
+         col = "red", lty = 3, lwd = 3)
+text(x= b[i] +.5, 
+     y = 0.8, colnames(si)[i], col = my_colors[i], cex = 2)
+
+}
+
+
+
+
+```
+
+
+:::
+
+
+## The 2-Parameter Logistic Model 
+
+
+$$P(x_{pi} = 1|\theta_p, b_i, a_i) = \frac{\exp[a_i(\theta_p - b_i)])}{1 + \exp[a_i(\theta_p - b_i)]}$$
+
+::: {.panel-tabset}
+
+
+## Low discrimination, $a = 0.50$
+
+```{r}
+par(mar = c(5,7,4,2) + 0.1) 
+library(png)
+lisa = readPNG( "www/lisa.png")
+bart = readPNG( "www/bart.png")
+
+plot(theta, IRT(theta, a = 0.5, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3)
+text(x= 3.2, 
+     y = 0.95, expression(paste(a[1], "= 0.50")), 
+     col = "black", cex = 2)
+
+segments(-7, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         1, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+mycol = rgb(.54, .114, .89)
+segments(1, -exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+        1, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+
+segments(-7, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+
+rasterImage(lisa, 0.6, -0.10, 1.5, 0.15)
+rasterImage(bart, -1.5, -0.10, -0.5, 0.15)
+
+
+# segments(-7, exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#          1, exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#          col = "red", lty = 3, lwd = 3)
+# segments(1, -exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#         1, exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#          col = "red", lty = 3, lwd = 3)
+# 
+# segments(-7, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+#          -1, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+#          col = "royalblue4", lty = 3, lwd = 3)
+segments(-1, -exp(0.5 *(-1))/(1+exp(0.5 *(-1))),
+        -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))),
+         col = "royalblue4", lty = 3, lwd = 3)
+
+```
+
+
+## High discrimination, $a = 2.50$
+
+```{r}
+par(mar = c(5,7,4,2) + 0.1) 
+library(png)
+lisa = readPNG( "www/lisa.png")
+bart = readPNG( "www/bart.png")
+
+plot(theta, IRT(theta, a = 0.5, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3)
+text(x= 3.2, 
+     y = 0.95, expression(paste(a[1], "= 0.50")), 
+     col = "black", cex = 2)
+
+segments(-7, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         1, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+mycol = rgb(.54, .114, .89)
+
+segments(-7, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+
+
+segments(-7, exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+         1, exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+segments(1, -exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+        1, exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+
+lines(theta, IRT(theta, a = 2.5, b = 0), 
+      lty = 1, lwd=3, col = rgb(.54, .114, .89))
+text(x= -0.8, 
+     y = 0.75, expression(paste(a[2], "= 2.50")), 
+     col = rgb(.54, .114, .89), cex = 2)
+
+
+segments(-7, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+         -1, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+segments(-1, -exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+        -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+rasterImage(lisa, 0.6, -0.10, 1.5, 0.15)
+rasterImage(bart, -1.5, -0.10, -0.5, 0.15)
+```
+
+
+:::
+
+## Moving the asymptotes 
+
+::: {.panel-tabset}
+
+
+## Feeling lucky 
+
+
+$$P(x_{pi} = 1| \theta_p, b_i, a_i) = c_i + (1 - c_i) \dfrac{\exp[a_i(\theta_p - b_i)]}{1+\exp[a_i(\theta_p - b_i)]}$$
+
+
+
+```{r}
+#| out-width: "85%"
+b = c(0, 0)
+a = c(1.4, 1.4)
+g = c(0.20, 0.30)
+par(mar = c(5,7,4,2) + 0.1) 
+plot(theta, IRT(theta, a = a[1], b = b[1], c= g[1]), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i], ", ", c[i],  ")")), ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, 
+     xlab = expression(theta), lwd = 3, col = my_colors[1])
+text(x= -0.4, 
+     y = 0.90, "item1", 
+     col = my_colors[1], cex = 2)
+
+abline(h = .20, lty = 2, lwd = 2, col = "red")
+abline(h = .30, lty = 2, lwd = 2, col = "red")
+lines(theta, IRT(theta, a = a[2], b = b[2], c= g[2]), 
+     col = my_colors[5], lwd = 3)
+text(x= 3.2, 
+     y = 0.90, "item2", 
+     col = my_colors[5], cex = 2)
+```
+
+
+## Being careless
+
+$$P(x_{pi} = 1| \theta_p, b_i. a_i) = c_i + (d_i - c_i) \dfrac{\exp[a_i(\theta_p - b_i)]}{1+\exp[a_i(\theta_p - b_i)]}$$
+
+
+```{r}
+#| out-width: "85%"
+b = rep(0, 2)
+a = c(1.4, 1.4)
+g = c(0.20, 0.30)
+d = c(.9, .7)
+par(mar = c(5,7,4,2) + 0.1) 
+plot(theta, IRT(theta, a = a[1], b = b[1], c= g[1], e = d[1]), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i], ", ", c[i], ", ", d[i], ")")), ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, 
+     xlab = expression(theta), lwd = 3, col = my_colors[1])
+text(x= -0.4, 
+     y = 0.90,  "item1", 
+     col = my_colors[1], cex = 2)
+
+abline(h = .90, lty = 2, lwd = 2, col = "red")
+abline(h = .70, lty = 2, lwd = 2, col = "red")
+abline(h = .20, lty = 2, lwd = 2, col = "red")
+abline(h = .30, lty = 2, lwd = 2, col = "red")
+lines(theta, IRT(theta, a = a[2], b = b[2], c= g[2], e = d[2]), 
+     col = my_colors[5], lwd = 3)
+text(x= 3.2, 
+     y = 0.80, "item2", 
+     col = my_colors[5], cex = 2)
+```
+
+
+
+:::
+
+
+## Just a matter of constraints
+
+<br>
+
+<br>
+
+- Constraining the $d_i$ parameters of all items to be 1 $\rightarrow$ from 4-PL to 3-PL
+
+- Constraining the $c_i$ parameters of all items to be 0 $\rightarrow$ from 3-PL to 2-PL
+
+- Constraining the $a_i$ parameters of all items to be 1 $\rightarrow$ from 2-PL to 1-PL
+
+## What about Rasch? 
+
+Mathematically speaking: Rasch model $=$ 1-PL model 
+
+Philosophically: Not event close 
+
+. . .
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+**1-PL** (IRT in general)
+:::
+
+Fit of the model to the data $\rightarrow$ The model must adapt to the data 
+
+:::
+
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+**Rasch**
+:::
+
+
+Fit of the data to the model $\rightarrow$ The data must adapt to the model 
+
+:::
+
+::::
+
+## Information Functions 
+
+::: {.panel-tabset}
+
+
+###  IIF[^1]
+
+<font size="4"> Item Information Function </font>
+
+The measurement precision of ***each item*** $i \in B$ with respect to different latent trait levels: 
+
+$$IIF_i = a_i^2P(\theta, b_i, a_i)[1-P(\theta, b_i, a_i)]$$
+
+$B$: set of items in a test or in an item bank 
+
+
+[^1]:  This refers to the 2-PL model. By constraining $\forall i \in B, a_i = 1$ the IIF for the 1-PL can be obtained
+
+###  TIF
+
+<font size="4"> Test Information Function </font>
+
+The measurement precision of the ***test as a whole***: 
+
+$$TIF = \sum_{i \in B} IIF_i$$
+
+$B$: set of items in a test or in an item bank 
+
+### $\overline{TIF}$
+
+<font size="4"> Mean Test Information Function </font>
+
+The measurement precision of a test as a whole *accounting for the number of items*: 
+
+$$\overline{TIF} = \frac{\sum_{i \in B} IIF_i}{||B||}$$
+
+Where $||B||$ is the cardinality of $B$
+
+:::
+
+
+
+
+
+
+## Intuitively 
+
+```{r}
+#| panel: sidebar
+tags$style(HTML(".js-irs-0 .irs-single, .js-irs-0 .irs-bar-edge, .js-irs-0 .irs-bar {background: royalblue}"))
+tags$style(HTML(".js-irs-1 .irs-single, .js-irs-1 .irs-bar-edge, .js-irs-1 .irs-bar {background: magenta}"))
+tags$style(HTML(".js-irs-2 .irs-single, .js-irs-2 .irs-bar-edge, .js-irs-2 .irs-bar {background: seagreen}"))
+tags$style(HTML(".js-irs-3 .irs-single, .js-irs-3 .irs-bar-edge, .js-irs-3 .irs-bar {background: royalblue}"))
+tags$style(HTML(".js-irs-4 .irs-single, .js-irs-3 .irs-bar-edge, .js-irs-4 .irs-bar {background: magenta}"))
+tags$style(HTML(".js-irs-5 .irs-single, .js-irs-5 .irs-bar-edge, .js-irs-5 .irs-bar {background: seagreen}"))
+
+
+ sliderInput("b1", "b1",
+                  min = -3, max = 3,
+                  value = 0, step = 0.1)
+sliderInput("b2", "b2",
+                  min = -3, max = 3,
+                  value = -1, step = 0.1)
+sliderInput("b3", "b3",
+                  min = -3, max = 3,
+                  value = 1, step = 0.1)
+
+sliderInput("a1", "a1",
+                  min = 0.20, max = 3,
+                  value = 1, step = 0.1)
+sliderInput("a2", "a2",
+                  min = 0, max = 3,
+                  value = 1, step = 0.1)
+sliderInput("a3", "a3",
+                  min = 0, max = 3,
+                  value = 1, step = 0.1)
+checkboxInput("showTif", "Show Test Information Function", value = FALSE)
+
+```
+
+```{r}
+#| panel: fill
+
+
+plotOutput("plot", height = "300px")
+
+plotOutput("tif", height = "300px")
+```
+
+
+
+```{r}
+#| context: server
+ output$plot <- renderPlot({
+   theta <- theta <- seq(-7, 7, .001)
+  par(mar = c(5,7,4,2) + 0.1)
+  b = c(input$b1, input$b2, input$b3)
+  a = c(input$a1, input$a2, input$a3)
+
+ 
+ plot(theta, IRT(theta, b = input$b1, a = input$a1), 
+                 type = "l", lwd = 2, lty = 2,
+     col = "royalblue", main = "Item Characteristics Curves - ICCs", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i], ")")), 
+     xlab = expression(theta), 
+     cex.lab = 2.4, 
+     cex.main = 3, 
+     cex.text=2, cex.axis=1.5)
+ 
+segments(min(theta)-3, 0.5, 
+         input$b1, 0.5, 
+         col = "gray56", lty = 3, lwd = 1.3)
+segments(input$b1, -0.5, 
+         input$b1, 0.5, 
+         col = "royalblue", lty = 3, lwd = 1.3)
+ 
+lines(theta, IRT(theta, b=input$b2,
+                 a=input$a2),
+       type = "l", lwd = 2, lty = 2,
+     col = "magenta")
+ lines(theta, IRT(theta, b=input$b3,
+                 a=input$a3),
+       type = "l", lwd = 2, lty = 2,
+     col = "seagreen")
+ segments(min(theta)-3, 0.5, 
+         input$b2, 0.5, 
+         col = "gray56", lty = 3, lwd = 1.3)
+segments(input$b2, -0.5, 
+         input$b2, 0.5, 
+         col = "magenta", lty = 3, lwd = 1.3)
+ segments(min(theta)-3, 0.5, 
+         input$b3, 0.5, 
+         col = "gray56", lty = 3, lwd = 1.3)
+segments(input$b3, -0.5, 
+         input$b3, 0.5, 
+         col = "seagreen", lty = 3, lwd = 1.3)
+  })
+
+output$tif <- renderPlot({
+ 
+Theta <- matrix(seq(-4,4, length.out=1000))
+  par(mar = c(5,7,4,2) + 0.1)
+parameters = data.frame(b = c(input$b1, input$b2, input$b3), a = c(input$a1, input$a2, input$a3))
+c <- item_info(parameters, theta = Theta)
+check <- data.frame(Theta,
+                    item_info = c[[1]],
+                    item_info2 = c[[2]],
+                    item_info3 = c[[3]])
+d <- c
+sum_info1 <- rowSums(d)
+d1 <- c
+sum_info2 <- rowSums(d1)
+plot(check$Theta, check$item_info, cex.lab= 2, main = "Item Information Functions - IIFs",
+      cex.lab = 2.4, 
+     cex.main = 3, 
+     cex.text=2, cex.axis=1.5,
+        xlab = expression(theta), ylab = expression(paste("IIF"[i])),
+ type = "l", lwd =2,
+      col = "royalblue", ylim = c(0,1))
+ lines(check$Theta, check$item_info2, lwd =2,
+       col = "magenta", lty = 4)
+ lines(check$Theta, check$item_info3, lwd =2,
+       col = "seagreen", lty = 2)
+ 
+ 
+checkTif <- data.frame(Theta, sum_info1, sum_info2)
+
+if (input$showTif == TRUE) {
+  plot(checkTif$Theta, checkTif$sum_info2,
+       type = "l", lwd =2,
+     col = "black", ylim = c(0, 2),
+       xlab = expression(theta), 
+     ylab = expression(paste("I(", theta, ")")), 
+     cex.axis=1.5, main = "IIFs and Test Information Functions",  
+     cex.lab = 2.4, 
+     cex.main = 3, 
+     cex.text=2)
+  lines(check$Theta, check$item_info, lwd =2,
+       col = "royalblue", lty = 4)
+   lines(check$Theta, check$item_info2, lwd =2,
+       col = "magenta", lty = 4)
+ lines(check$Theta, check$item_info3, lwd =2,
+       col = "seagreen", lty = 2)
+}
+
+
+
+ 
+})
+```
+
+## Short Test Forms -- Why?
+
+<br>
+
+Many items $\rightarrow$ good measurement precision, great reliability and so on
+	
+::: {.r-stack}
+Not always!
+:::
+
+. . .
+
+<br>
+
+People might get tired and frustrated 
+	 
+::: {.callout-tip}
+## IRT models for the win
+		
+Being focused on the item information and on the ability of each item to measure different levels of the latent trait, IRT models provide an ideal framework for developing STF (and not torturing people)	
+:::
+
+## Short Test Forms in Item Response Theory 
+
+### Static STFs
+
+`r emoji("grinning cat")` Equal for all respondents 
+
+`r emoji("grinning cat")` Can be administered paper-and-pencil/computerized versions
+
+`r emoji("crying cat")` Might not provide adequate measurement precision of certain regions of the latent trait
+
+### Adaptive STFs
+
+`r emoji("grinning cat")` Tailored on the actual level of ability of each respondent
+
+`r emoji("grinning cat")` Avoid frustration and boredom 
+
+`r emoji("crying cat")`  Fairness issues in specific evaluation contexts
+
+
+## Computerized Adaptive Testing 
+
+1. Start: An item is administered (usually with an average level of difficulty)
+
+2. Temporary ability estimate 
+
+3. Stopping rule satisfied? 
+    
+    - No: Select new items & repeat 2-3
+    - Yes: End administration and obatin the final ability estimate 
+
+
+## Benchamark procedure (static STFs)
+
+Create a short test form composed of $N$ items from an item bank $B$ $\rightarrow$  Select the $N$ items with the highest *IIF*s: 
+	
+
+The *IIF*s of the items of item bank are sorted in decreasing order: 
+		
+	
+$$\mathit{iif} = (\displaystyle \max_{1 < i < B} IIF_i, \ldots \displaystyle, \min_{1 < i < B} IIF_i) $$
+
+Items with IIFs from 1 to $N$, $N < ||B||$, are selected to be included in the short test form
+
+## An example 
+
+Aim: Develop a STF of $N =3$ from an item bank $B$ of 10 items: 
+
+::: {.panel-tabset}
+
+## The items in $B$
+
+```{r}
+library(knitr)
+library(kableExtra)
+
+# Create the data frame
+data <- data.frame(
+  item = 1:10,
+  b_i = c(-0.67, 0.50, -2.43, 2.12, 1.72, -2.28, 0.64, -2.51, -0.66, 0.72),
+  a_i = c(0.71, 1.19, 0.25, 1.98, 0.39, 1.62, 0.50, 1.68, 0.44, 0.33),
+  IIF_i = c(0.08, 0.15, 0.01, 0.24, 0.03, 0.19, 0.05, 0.19, 0.04, 0.02)
+)
+
+# Generate the table with kable
+kable(data, "html", digits = 2,  col.names = c("item", "\\( b_i \\)", "\\( a_i \\)", "\\( \\text{IIF}_i \\)"))  %>%
+  kable_styling(full_width = F, font_size = 24) %>%
+  row_spec(0, bold = TRUE) %>% 
+      row_spec(0, extra_css = "border-top: 1px solid;") %>%
+      row_spec(0, extra_css = "border-bottom: 1px solid;") %>%
+  row_spec(1, extra_css = "border-top: 1px solid;") %>%
+    row_spec(10, extra_css = "border-bottom: 1px solid;") 
+```
+
+## Shuffling
+
+```{r}
+
+kable(data[order(data$IIF_i, decreasing = T),], "html", digits = 2,   booktabs=TRUE, 
+      row.names = FALSE,
+      col.names = c("item", "\\( b_i \\)", "\\( a_i \\)", "\\( \\text{IIF}_i \\)"))  %>%
+  kable_styling(full_width = F, font_size = 24) %>%
+  row_spec(0, bold = TRUE) %>% 
+    row_spec(0, extra_css = "border-top: 1px solid;") %>%
+      row_spec(0, extra_css = "border-bottom: 1px solid;") %>%
+  row_spec(1, extra_css = "border-top: 1px solid;") %>%
+    row_spec(10, extra_css = "border-bottom: 1px solid;") 
+
+```
+
+
+## The final selection
+
+
+```{r}
+# Generate the table with kable and row coloring
+kable(data[order(data$IIF_i, decreasing = T),], "html", digits = 2,   row.names = FALSE,
+      booktabs = TRUE, 
+      col.names = c("item", "\\( b_i \\)", "\\( a_i \\)", "\\( \\text{IIF}_i \\)")) %>%
+  kable_styling(full_width = F, font_size = 24) %>%
+  row_spec(0, bold = TRUE) %>%
+ row_spec(0, extra_css = "border-top: 1px solid;") %>%
+      row_spec(0, extra_css = "border-bottom: 1px solid;") %>%
+  row_spec(1, extra_css = "border-top: 1px solid;") %>%
+    row_spec(10, extra_css = "border-bottom: 1px solid;")  %>%
+    row_spec(c(1, 2, 3), background = "#D9EAD3")
+```
+
+
+:::
+
+## Between static and adaptive: $\theta$-target procedure
+
+
+::: {.panel-tabset}
+
+## Strating point
+```{r}
+library(knitr)
+library(kableExtra)
+
+# Crea il data frame con 8 colonne
+data <- data.frame(
+  item = c("", "1", "2", "\\(\\vdots\\)", "\\(i\\)", "\\(\\vdots\\)", "\\(I\\)"),
+  col1 = c("", "\\(\\mathit{iif}_{11}\\)", "\\(\\mathit{iif}_{21}\\)", "", "\\(\\ldots\\)", "", ""),
+  col2 = c("", "\\(iif_{12}\\)", "\\(\\mathit{iif}_{22}\\)", "", "\\(\\ldots\\)", "", ""),
+  col3 = c("", "", "", "", "\\(\\ldots\\)", "", ""),
+  col4 = c("", "\\(\\vdots\\)", "\\(\\vdots\\)", "\\(\\vdots\\)", "\\(\\mathit{iif}_{jn}\\)", "\\(\\vdots\\)", "\\(\\vdots\\)"),
+  col5 = c("", "", "", "", "\\(\\ldots\\)", "", ""),
+  col6 = c("", "", "", "", "\\(\\ldots\\)", "", ""),
+  col7 = c("", "", "", "", "\\(\\ldots\\)", "", "\\(\\mathit{iif}_{IN}\\)"),
+  stringsAsFactors = FALSE
+)
+
+# Genera la tabella con 8 colonne e 8 colnames
+kable(data, "html", escape = F, 
+      col.names = c("", "1", "2", "\\(\\ldots\\)", "n", "\\(\\ldots\\)", "", "N")) %>%
+  kable_styling(full_width = F, font_size = 24) %>%
+  add_header_above(c(" " = 2, "\\(\\theta'\\)" = 6)) %>%
+  row_spec(0, extra_css = "border-bottom: 1px solid;") %>%
+  row_spec(3, extra_css = "border-top: 1px solid;") %>%
+  row_spec(7, extra_css = "border-top: 1px solid;") %>%
+  row_spec(7, extra_css = "border-bottom: 1px solid;") %>%
+  column_spec(1:8, border_left = TRUE, border_right = TRUE)
+```
+
+## Algorithm
+
+<font size="5">
+$k = 0, \ldots, K$: Scalar denoting the iterations of the procedures ($K = N-1$)
+
+$S^k \subseteq \{1, \ldots J\}$: Set of items selected to be included in the short test form up to iteration $k$
+
+$Q^k \subseteq \{1, \ldots N\}$: Set of $\theta'$s satisfied up to iteration $k$;\\
+
+. . .
+
+At $k=0$: $S^0 = \emptyset$, $Q^0 = \emptyset$
+
+The procedure cycles steps 1 to 3 until $k = K$:
+	
+
+1. Select $iif_{jn}^k = \displaystyle  \max_{j \in J\setminus S^k, \, n  \in N \setminus Q^k} \mathbf{IIF}(j,n)$;
+2. Compute $S^{k+1} = S^k \cup \{j\}$ as the set of item(s) selected at $k$; 
+3. Compute $Q^{k+1} = Q^k \cup \{n\}$ as the set of $\theta'$s satisfied at $k$; 
+	
+At iteration $K$, $|Q^{K + 1}| = N$ and   $|S^{K + 1}| = N$ 
+</font>
+:::
+
+## An example 
+
+
+::: {.panel-tabset}
+
+
+## $k=0$
+
+```{r}
+data <- matrix(c(
+  0.12, 0.12, 0.09,
+  0.14, 0.32, 0.31,
+  0.02, 0.01, 0.01,
+  0.01, 0.05, 0.43,
+  0.03, 0.03, 0.04,
+  0.35, 0.07, 0.01,
+  0.05, 0.06, 0.06,
+  0.27, 0.04, 0.01,
+  0.05, 0.05, 0.04,
+  0.02, 0.03, 0.03
+), nrow = 10, byrow = TRUE)
+
+data_with_highlight <- data
+data_with_highlight[4,3] = cell_spec(data_with_highlight[4,3], "html", bold = T)
+highlight_cells <- c(1:10)  # Highlight specific rows
+
+# Create a kable from the matrix
+kable(data_with_highlight, format = "html", escape = F, align = "ccc", caption = "IIF Matrix \\(k = 0\\)") %>%
+  kable_styling(full_width = F, font_size = 20) %>%
+  column_spec(1:3, border_left = TRUE, border_right = TRUE) %>%
+  row_spec(highlight_cells, extra_css = "background-color: #f0f0f0;") %>% 
+  row_spec(1, extra_css = "border-top: 1px solid;") %>% 
+    row_spec(10, extra_css = "border-bottom: 1px solid;")
+```
+
+<font size="4">
+
+$\mathit{iif}_{\text{max}}^0=\displaystyle \max_{j \in J\setminus S^0, \, n  \in N \setminus Q^0} \mathbf{IIF}= \mathbf{IIF}(4,3) = 0.43$
+	
+$S^{1} = S^0 \cup \{4\}$ = \{4\}
+
+$Q^{1} = Q^0 \cup \{3\}$ = \{3\} 
+
+</font>
+
+## $k=1$
+
+
+```{r}
+data <- matrix(c(
+  0.12, 0.12, 0.09,
+  0.14, 0.32, 0.31,
+  0.02, 0.01, 0.01,
+  0.01, 0.05, 0.43,
+  0.03, 0.03, 0.04,
+  0.35, 0.07, 0.01,
+  0.05, 0.06, 0.06,
+  0.27, 0.04, 0.01,
+  0.05, 0.05, 0.04,
+  0.02, 0.03, 0.03
+), nrow = 10, byrow = TRUE)
+
+# Add highlights and bold formatting to the matrix
+data_with_highlight <- data
+data_with_highlight[6,1] = cell_spec(data_with_highlight[6,1], "html", bold = T)
+highlight_cells <- c(1:3, 5:10)  # Highlight specific rows
+
+# Create a kable from the matrix
+kable(data_with_highlight, format = "html", escape = F, align = "ccc", caption = "IIF Matrix \\(k = 1\\)") %>%
+  kable_styling(full_width = F, font_size = 20) %>%
+  column_spec(1:3, border_left = TRUE, border_right = TRUE) %>%
+   column_spec(3, background = "white") %>% 
+  row_spec(highlight_cells, extra_css = "background-color: #f0f0f0;") %>% 
+    row_spec(1, extra_css = "border-top: 1px solid;") %>% 
+    row_spec(10, extra_css = "border-bottom: 1px solid;")
+```
+
+<font size="4">
+
+$\mathit{iif}_{max}^1=\displaystyle \max_{j \in J\setminus S^1, \, n  \in N \setminus Q^1}  \mathbf{IIF} = \mathbf{IIF}(6,1)= 0.35$
+
+$S^{2} = S^1 \cup \{6\} = \{4, 6\}$
+
+$Q^{2} = Q^1 \cup \{1\} = \{3, 1\}$\\ 
+
+</font>
+
+## $k=2$
+
+```{r}
+data <- matrix(c(
+  0.12, 0.12, 0.09,
+  0.14, 0.32, 0.31,
+  0.02, 0.01, 0.01,
+  0.01, 0.05, 0.43,
+  0.03, 0.03, 0.04,
+  0.35, 0.07, 0.01,
+  0.05, 0.06, 0.06,
+  0.27, 0.04, 0.01,
+  0.05, 0.05, 0.04,
+  0.02, 0.03, 0.03
+), nrow = 10, byrow = TRUE)
+
+# Specify the highlight and bolded cells
+data_with_highlight <- data
+data_with_highlight[2,2] = cell_spec(data_with_highlight[2,2], "html", bold = T)
+highlight_cells <- c(1:3, 5, 7:10)  # Highlight specific rows
+
+# Create a kable from the matrix
+kable(data_with_highlight, format = "html", escape = F, align = "ccc", caption = "IIF Matrix at \\(k = 2\\)") %>%
+  kable_styling(full_width = F, font_size = 20) %>%
+  column_spec(1:3, border_left = TRUE, border_right = TRUE) %>%
+   column_spec(c(1,3), background = "white") %>% 
+  row_spec(highlight_cells, extra_css = "background-color: #f0f0f0;") %>% 
+    row_spec(1, extra_css = "border-top: 1px solid;") %>% 
+    row_spec(10, extra_css = "border-bottom: 1px solid;")
+```
+
+<font size="4">
+$S^{3} = S^2 \cup \{2\} = \{4, 6, 2\}$
+
+$Q^{3} = Q^2 \cup \{2\} = \{3,1, 2\}$
+			
+$|S^3| = 3$, $|Q^3| = 3$, $K = 2$ $\rightarrow$ `end`
+</font>
+
+:::
+
+## How to define the $\theta$-target
+
+
+::: {.callout-note}
+## Theoretically
+
+Diagnostic tests with cut-off values, tests for teh gited population
+:::
+
+
+::: {.callout-note} 
+## Empirically 
+
+by segmenting the latent trait:
+
+- Into **equal** intervals (*equal information throughout the entire latent trait*) 
+- Into **unequal** intervals (*information on the most dense regions of the latent trait* $\rightarrow$ clustering) 
+
+:::
+
+## Simulation Study 
+
+<font size="4">
+Compare the performance of the benchmark procedure (BP), and that of the $\theta$-target procedure to develop STFs of different length from an item bank $B$ of $100$ items.
+</font>
+
+::: {.panel-tabset}
+## Simulation design
+
+### 1000 respondents \( p \):
+
+1. Normal distribution: \( p \sim \mathcal{N}(0,1) \)
+2. Positive skewed distribution: \( p \sim \text{Beta}(1, 100) \) <font size = "3">(linearly transformed to obtain negative values)</font>
+3. Uniform distribution: \( p \sim \mathcal{U}(-3, 3) \)
+
+---
+
+### 100 items \( i \in B \):
+
+- \( b \sim \mathcal{U}(-3, 3) \)
+- \( a \sim \mathcal{U}(0.40, 2) \)
+
+## Main result
+
+```{r, echo=FALSE, fig.cap="TIF of the 10-item short test form"}
+knitr::include_graphics("www/infoDetails.png")
+```
+
+:::
+
+# New algorithms
+
+## Some premises 
+
+::: {.callout-note}
+## Key concept
+
+<font size = "4">
+**TIF target** ($\mathbf{TIF}^*$) describing the desired characteristics of a test
+</font>
+:::
+
+::: {.callout-tip}
+## The aim of the algorithms
+
+<font size = "4">
+*Minimize the distance* between $\mathbf{TIF}^*$ and that of the short test forms (STFs) 
+</font>
+:::
+
+
+::: {.callout-warning}
+## Their differences
+
+<font size = "4">
+The method for selecting and including the items in $Q \subset B$ from the item bank
+</font>
+:::
+
+
+
+
+::: {.callout-important}
+## Mean TIF
+
+<font size = "4">
+TIF is considered as mean TIF $\rightarrow$ as the number of items increases, the TIF increases
+</font>
+:::
+
+
+## Bruto 
+
+::: {.r-stack}
+
+![](www/bear.jpg){width="250" height="150"}
+
+:::
+
+
+$\forall Q \in\mathcal{Q} = 2^B \setminus \{\emptyset, B\}$, 
+
+
+1. $\mathbf{TIF}^{Q} =  \frac{\sum_{i \in Q} IIF_i}{||Q||}$
+2. $\overline{\Delta}_{\mathbf{TIF}^{Q}} =  \mathit{mean}(|\mathbf{TIF}^* - \mathbf{TIF}^{Q}|)$
+
+$Q_{bruto} = \arg \min_{Q \in \mathcal{Q}} \overline{\Delta}_{\mathbf{TIF}^{Q}}$
+
+
+
+
+## ILA & ISA 
+
+
+![](www/twins.jpg){.absolute top=50 right=50 width="250" height="150"}
+
+<font size="4">
+$B$: Item bank 
+
+
+$Q^k \subset B$: Set of items selected for inclusion in the STF up to iteration $k$
+
+$\mathbf{TIF}^*$: TIF target 
+
+$i^*$: Item selected at each iteration
+</font>
+
+:::: {.columns}
+
+
+::: {.column width="50%"}
+
+ILA
+
+<font size="4">
+At $k = 0$: $TIF^0(\theta) = 0 \, \forall \theta$, $Q^0 = \emptyset$. For $k \geq 0$,
+
+
+1. $\theta_{target} := \arg \max |\mathbf{TIF}^* - \mathbf{TIF}^{k}|$
+
+::: {.fragment .highlight-red}
+2. $i^* = \arg \min_{i \in B\setminus Q^{k}} |\theta_{target} - b_i|$
+:::
+
+3.  $\mathbf{pTIF}_{i^*} = \frac{TIF^k + IIF_{i^*}}{||Q^{k}|| + 1}$ 
+
+4. Termination Criterion: $|\mathbf{TIF}^* - \mathbf{pTIF}_{i^*}| \geq |\mathbf{TIF}^* - \mathbf{TIF}^{k}|$: 
+  - FALSE:  $Q^{k+1} = Q^{k} \cup \{i^*\}$, $TIF^{k+1} = pTIF_{i^*}$, iterates 1-4 
+  - TRUE: Stop, $Q_{ILA} = Q^k$
+</font>
+:::
+
+::: {.column width="50%"}
+
+ISA
+
+
+<font size="4">
+At $k = 0$: $TIF^0(\theta) = 0 \, \forall \theta$, $Q^0 = \emptyset$. For $k \geq 0$,
+
+
+1. $\theta_{target} := \arg \max |\mathbf{TIF}^* - \mathbf{TIF}^{k}|$
+
+::: {.fragment .highlight-red}
+2. $i^* := \arg \max_{i \in B\setminus Q^k} IIF_i(\theta_{target})$
+:::
+
+3.  $\mathbf{pTIF}_{i^*} = \frac{TIF^k + IIF_{i^*}}{||Q^{k}|| + 1}$ 
+
+4. Termination Criterion: $|\mathbf{TIF}^* - \mathbf{pTIF}_{i^*}| \geq |\mathbf{TIF}^* - \mathbf{TIF}^{k}|$: 
+  - FALSE:  $Q^{k+1} = Q^{k} \cup \{i^*\}$, $TIF^{k+1} = pTIF_{i^*}$, iterates 1-4 
+  - TRUE: Stop, $Q_{ISA} = Q^k$
+</font>
+::: 
+
+::::
+
+## Frank 
+
+![](www/leon.jpg){.absolute top=50 right=50 width="250" height="150"}
+
+At $k = 0$: $TIF^0(\theta) = 0 \, \forall \theta$, $Q^0 = \emptyset$. For $k \geq 0$,
+
+
+1. $A^k = B \setminus Q^k$
+
+2. $\forall i \in A^k$, $pTIF_{i}^k = \frac{TIF^k + IIF_{i}}{||Q^k||+1}$
+
+3. $i^* = \arg \min_{i \in A^k} |TIF^* - pTIF_i^k|$
+
+4. Termination criterion: $|\mathbf{TIF}^* - \mathbf{pTIF}_{i^*}| \geq |\mathbf{TIF}^* - \mathbf{TIF}^{k}|$: 
+
+  - FALSE, $k = k + 1,$ $Q^{k+1} = Q^k \cup \{D\}$, iterates 1-4
+
+  - TRUE, stops, $Q_{Frank} = Q^k$
+
+
+
+
+
+## Simulation time
+
+::: {.panel-tabset}
+
+## Simulation design
+
+100 replications:
+
+1. Generate an item bank $B$ of $11$ items: 
+        
+      - Difficulty parameters: $\mathcal{U}(-3, 3)$
+        
+      - Discrimination parameters:  $\mathcal{U}(.90, 2.0)$
+		 
+2. Random item selections of lengths $l$ from $B$ ($M_l = 5.01 \pm 2.99$) + randomly drawn values $\mathcal{U}(-0.20, 0.20)$ $\rightarrow$ $\mathbf{TIF}^*$ 
+		
+3. Considering $\mathbf{TIF}^*$ at Step 2 and item parameters at Step 1:
+
+      - Bruto  $\rightarrow$ Systematically tests
+      
+      - ILA  $\rightarrow$ Forwardly searches considering a single $\theta$
+      - Frank $\rightarrow$ Forwardly searches considering the whole latent trait 		
+
+## Comparisons criteria 
+
+- Computational Time & Successful attempts
+
+- Percentile rank of $Q_x, x \in \{\text{ILA}, \text{ISA}, \text{Frank}\}$:  $\forall (Q, Q') \in \mathcal(Q), Q \preceq Q' \Rightarrow mean(|TIF^* - TIF_Q| \leq |TIF^* - TIF_{Q'}|)$ 
+
+- Symmetric distance: $Q_x \Delta Q_{Bruto} = ||\{(Q_x \setminus Q_{Bruto}) \cup (Q_{Bruto} \setminus Q_{x}) \}||$  
+
+<!-- - Accuracy: $||\{(Q_x \cap Q_{bruto}) \cup B \setminus (Q_x \cup Q_{bruto})\}||/ ||B||$ -->
+
+<!-- - Specificity:  $||\{B \setminus (Q_x \cup Q_{bruto})\}||/||\{B \setminus Q_{Bruto}\}||$ -->
+
+<!-- - Sensitivity: $||\{Q_x \cap Q_{Bruto}\}||/ ||Q_{bruto}||$ -->
+
+:::
+
+
+## Results
+
+::: {.panel-tabset}
+
+## Computational Time 
+
+```{r}
+#| out-width: "70%"
+#| fig-align: center
+load("summary-comparison.RData")
+
+ggplot(elapsed, 
+       aes(x =name, y = value, color = name)) + geom_boxplot() + 
+  scale_x_discrete(labels = c("Bruto", "Frank", "ILA", "ISA")) + 
+  theme_light() + ylab("Time (minutes)") +  
+  theme(axis.title.y = element_text(size = 28), 
+        axis.text = element_text(size = 26), 
+        axis.title.x = element_blank(), 
+        legend.position = "none")
+
+```
+
+::: {.callout-warning}
+## !!!
+
+ILA & ISA failed to find a STF in the 7% and 18% of the replications
+
+:::
+
+## Ranking
+
+
+```{r}
+ggplot(all_ranks, 
+       aes(x = reorder(iter, rp), 
+           y = rp, shape = alorigthm, 
+           color = alorigthm)) + geom_point(size = 3)  + 
+  scale_shape_manual(values = c(17, 15, 19)) + 
+  ylab("Percenteli Rank") + xlab("Replication") + 
+  theme_light() + 
+  geom_hline(yintercept = 50, linetype = 2) + 
+  theme(axis.text.x = element_blank(), 
+        axis.title = element_text(size = 28), 
+        axis.text = element_text(size = 26), 
+        legend.position = c(.2,.7), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = 26)) + guides(color = guide_legend(nrow = 1), 
+                                                        shape = guide_legend(nrow = 1)) +
+  scale_color_hue(labels =c("Frank", "ILA", "ISA")) + 
+  scale_shape(labels = c("Frank", "ILA", "ISA"))
+
+
+```
+
+
+
+## Distances 
+
+```{r}
+longDistances = pivot_longer(the_distances, 
+                             cols =!replica)
+
+ggplot(longDistances[!longDistances$name %in% "bruto_d", ], 
+       aes(x = name, y =value, color = name)) + geom_violin() + theme_light() + 
+  theme(legend.position = "none", 
+        axis.text = element_text(size = 26), 
+        axis.title.y = element_text(size = 28), 
+        axis.title.x = element_blank()) + ylab("Number of items") +
+  scale_x_discrete(labels = c("Frank", "ILA", "ISA"))  
+  
+
+```
+
+
+
+<!-- ## Spill the tea -->
+
+<!-- ```{r} -->
+<!-- ggplot(allalgo,  -->
+<!--        aes(x = factor(l_stf), y = value, color = algo)) + geom_boxplot() + theme_light() + -->
+<!--   ylab(expression(paste(TIF^"* - ", TIF[STF]))) +  xlab("Length STF") + -->
+<!--   scale_color_manual(values = c("royalblue","red",  "seagreen")) + -->
+<!--   theme(axis.title = element_text(size = 28),  -->
+<!--         axis.text = element_text(size = 26),  -->
+<!--         legend.position = c(.7,.9),  -->
+<!--         legend.title = element_blank(),  -->
+<!--         legend.text = element_text(size = 24),  -->
+<!--         legend.key.size = unit(2, "cm")) + -->
+<!--   guides(color=guide_legend(ncol=3)) -->
+<!-- ``` -->
+
+
+:::
+
+
+<!-- ## When $||Q_{ILA}|| = ||Q_{Frank}|| = ||Q_{Bruto}||$ -->
+<!-- ### But $Q_{Ila} \neq Q_{frank} \neq Q_{bruto}$ -->
+
+<!-- ```{r} -->
+<!-- library(patchwork) -->
+<!-- all_equals = as.numeric(rownames(select_equal1[select_equal1$is_equal_all == FALSE, ]) -->
+<!-- ) -->
+<!-- wrap_plots(g[all_equals]) -->
+<!-- ``` -->
+
+## In the end 
+
+<br>
+
+Mathematically, we are at loss
+
+Psychologically? I don't know
+
+Do they work? Hopefully
+
+::: {.callout-tip}
+## Acknowfndabfjknc
+
+Pasquale Anselmi, Egidio Robusto, Livio Finos, Gianmarco Altoè
+
+
+:::
+
+
+</br>
+
+
+
