@@ -718,17 +718,24 @@ Ottavia M. Epifania &amp; Friends
 </section>
 <section id="short-test-forms-in-item-response-theory" class="slide level2">
 <h2>Short Test Forms in Item Response Theory</h2>
+<div class="fragment" data-fragment-index="2">
+<!-- -->
 <h3 id="static-stfs">Static STFs</h3>
 <p>😺 Equal for all respondents</p>
 <p>😺 Can be administered paper-and-pencil/computerized versions</p>
 <p>😿 Might not provide adequate measurement precision of certain regions of the latent trait</p>
+</div>
+<div class="fragment" data-fragment-index="3">
+<!-- -->
 <h3 id="adaptive-stfs">Adaptive STFs</h3>
 <p>😺 Tailored on the actual level of ability of each respondent</p>
 <p>😺 Avoid frustration and boredom</p>
 <p>😿 Fairness issues in specific evaluation contexts</p>
+</div>
 </section>
 <section id="computerized-adaptive-testing" class="slide level2">
 <h2>Computerized Adaptive Testing</h2>
+<p><br></p>
 <ol type="1">
 <li><p>Start: An item is administered (usually with an average level of difficulty)</p></li>
 <li><p>Temporary ability estimate</p></li>
@@ -1078,7 +1085,7 @@ Ottavia M. Epifania &amp; Friends
 <td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\ldots\)</td>
 <td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\ldots\)</td>
 <td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\ldots\)</td>
-<td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\mathit{iif}_{jn}\)</td>
+<td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\mathit{iif}_{in}\)</td>
 <td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\ldots\)</td>
 <td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\ldots\)</td>
 <td style="text-align: left; border-left: 1px solid; border-right: 1px solid;">\(\ldots\)</td>
@@ -1094,14 +1101,14 @@ Ottavia M. Epifania &amp; Friends
 <td style="text-align: left; border-left: 1px solid; border-right: 1px solid;"></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;">\(I\)</td>
+<td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;">\(B\)</td>
 <td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;"></td>
 <td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;"></td>
 <td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;"></td>
 <td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;">\(\vdots\)</td>
 <td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;"></td>
 <td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;"></td>
-<td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;">\(\mathit{iif}_{IN}\)</td>
+<td style="text-align: left; border-top: 1px solid; border-bottom: 1px solid; border-left: 1px solid; border-right: 1px solid;">\(\mathit{iif}_{BN}\)</td>
 </tr>
 </tbody>
 </table>
@@ -1112,14 +1119,13 @@ Ottavia M. Epifania &amp; Friends
 </div>
 <div id="tabset-6-2">
 <p><font size="5"> <span class="math inline">\(k = 0, \ldots, K\)</span>: Scalar denoting the iterations of the procedures (<span class="math inline">\(K = N-1\)</span>)</font></p><font size="5">
-<p><span class="math inline">\(S^k \subseteq \{1, \ldots J\}\)</span>: Set of items selected to be included in the short test form up to iteration <span class="math inline">\(k\)</span></p>
-<p><span class="math inline">\(Q^k \subseteq \{1, \ldots N\}\)</span>: Set of <span class="math inline">\(\theta'\)</span>s satisfied up to iteration <span class="math inline">\(k\)</span>;\</p>
-<p>. . .</p>
+<p><span class="math inline">\(S^k \subseteq \{1, \ldots, J\}\)</span>: Set of items selected to be included in the short test form up to iteration <span class="math inline">\(k\)</span></p>
+<p><span class="math inline">\(Q^k \subseteq \{1, \ldots, N\}\)</span>: Set of <span class="math inline">\(\theta'\)</span>s satisfied up to iteration <span class="math inline">\(k\)</span>;</p>
 <p>At <span class="math inline">\(k=0\)</span>: <span class="math inline">\(S^0 = \emptyset\)</span>, <span class="math inline">\(Q^0 = \emptyset\)</span></p>
 <p>The procedure cycles steps 1 to 3 until <span class="math inline">\(k = K\)</span>:</p>
 <ol type="1">
-<li>Select <span class="math inline">\(iif_{jn}^k = \displaystyle  \max_{j \in J\setminus S^k, \, n  \in N \setminus Q^k} \mathbf{IIF}(j,n)\)</span>;</li>
-<li>Compute <span class="math inline">\(S^{k+1} = S^k \cup \{j\}\)</span> as the set of item(s) selected at <span class="math inline">\(k\)</span>;</li>
+<li>Select <span class="math inline">\(iif_{in}^k = \displaystyle  \max_{i \in B\setminus S^k, \, n  \in N \setminus Q^k} \mathbf{IIF}(i,n)\)</span>;</li>
+<li>Compute <span class="math inline">\(S^{k+1} = S^k \cup \{i\}\)</span> as the set of item selected at <span class="math inline">\(k\)</span>;</li>
 <li>Compute <span class="math inline">\(Q^{k+1} = Q^k \cup \{n\}\)</span> as the set of <span class="math inline">\(\theta'\)</span>s satisfied at <span class="math inline">\(k\)</span>;</li>
 </ol>
 </font><p><font size="5">At iteration <span class="math inline">\(K\)</span>, <span class="math inline">\(|Q^{K + 1}| = N\)</span> and <span class="math inline">\(|S^{K + 1}| = N\)</span> </font></p>
@@ -1265,7 +1271,7 @@ Ottavia M. Epifania &amp; Friends
 <p><font size="4"></font></p><font size="4">
 <p><span class="math inline">\(\mathit{iif}_{max}^1=\displaystyle \max_{j \in J\setminus S^1, \, n  \in N \setminus Q^1}  \mathbf{IIF} = \mathbf{IIF}(6,1)= 0.35\)</span></p>
 <p><span class="math inline">\(S^{2} = S^1 \cup \{6\} = \{4, 6\}\)</span></p>
-<p><span class="math inline">\(Q^{2} = Q^1 \cup \{1\} = \{3, 1\}\)</span>\</p>
+<p><span class="math inline">\(Q^{2} = Q^1 \cup \{1\} = \{3, 1\}\)</span></p>
 </font><p><font size="4"></font></p>
 </div>
 <div id="tabset-7-3">
@@ -1348,7 +1354,7 @@ Ottavia M. Epifania &amp; Friends
 <p><strong>Theoretically</strong></p>
 </div>
 <div class="callout-content">
-<p>Diagnostic tests with cut-off values, tests for teh gited population</p>
+<p>Diagnostic tests with cut-off values, tests for the gifted population (e.g., MENSA)</p>
 </div>
 </div>
 </div>
@@ -1374,29 +1380,40 @@ Ottavia M. Epifania &amp; Friends
 <h2>Simulation Study</h2>
 <p><font size="4"> Compare the performance of the benchmark procedure (BP), and that of the <span class="math inline">\(\theta\)</span>-target procedure to develop STFs of different length from an item bank <span class="math inline">\(B\)</span> of <span class="math inline">\(100\)</span> items. </font></p>
 <div class="panel-tabset">
-<ul id="tabset-8" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-8-1">Simulation design</a></li><li><a href="#tabset-8-2">Main result</a></li></ul>
+<ul id="tabset-8" class="panel-tabset-tabby"><li><a data-tabby-default="" href="#tabset-8-1">Simulation design</a></li><li><a href="#tabset-8-2"><span class="math inline">\(\theta\)</span>-target definition</a></li><li><a href="#tabset-8-3">Main result</a></li></ul>
 <div class="tab-content">
 <div id="tabset-8-1">
-<h3 id="respondents-p">1000 respondents ( p ):</h3>
+<h3 id="respondents-p">1000 respondents <span class="math inline">\(p\)</span>:</h3>
 <ol type="1">
-<li>Normal distribution: ( p (0,1) )</li>
-<li>Positive skewed distribution: ( p (1, 100) ) <font size="3">(linearly transformed to obtain negative values)</font></li>
-<li>Uniform distribution: ( p (-3, 3) )</li>
+<li>Normal distribution: <span class="math inline">\(p \sim \mathcal{N}(0,1)\)</span></li>
+<li>Positive skewed distribution: <span class="math inline">\(p \sim \text{Beta}(1, 100)\)</span> <font size="3">(linearly transformed to obtain negative values)</font></li>
+<li>Uniform distribution: <span class="math inline">\(p \sim \mathcal{U}(-3, 3)\)</span></li>
 </ol>
 <hr>
-<h3 id="items-i-b">100 items ( i B ):</h3>
+<h3 id="items-i-in-b">100 items <span class="math inline">\(i \in B\)</span>:</h3>
 <ul>
-<li>( b (-3, 3) )</li>
-<li>( a (0.40, 2) )</li>
+<li><span class="math inline">\(b \sim \mathcal{U}(-3, 3)\)</span></li>
+<li><span class="math inline">\(a \sim \mathcal{U}(0.40, 2)\)</span></li>
 </ul>
 </div>
 <div id="tabset-8-2">
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="www/infoDetails.png" width="504"></p>
-<figcaption>TIF of the 10-item short test form</figcaption>
+<p><img data-src="www/latent-1.png" class="quarto-figure quarto-figure-center" style="width:50.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Equal Intervals Procedures (EIP) vs.&nbsp;Unequal Intervals Procedures (UIP)</p>
+</div>
+<div id="tabset-8-3">
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="www/infoDetails.png" class="quarto-figure quarto-figure-center" style="width:70.0%"></p>
 </figure>
 </div>
 </div>
@@ -1421,7 +1438,7 @@ Ottavia M. Epifania &amp; Friends
 <p><strong>Key concept</strong></p>
 </div>
 <div class="callout-content">
-<p><font size="4"> <strong>TIF target</strong> (<span class="math inline">\(\mathbf{TIF}^*\)</span>) describing the desired characteristics of a test </font></p>
+<p><font size="4"> <strong>TIF target</strong> (<span class="math inline">\(TIF^*\)</span>) describing the desired characteristics of a test </font></p>
 </div>
 </div>
 </div>
@@ -1434,7 +1451,7 @@ Ottavia M. Epifania &amp; Friends
 <p><strong>The aim of the algorithms</strong></p>
 </div>
 <div class="callout-content">
-<p><font size="4"> <em>Minimize the distance</em> between <span class="math inline">\(\mathbf{TIF}^*\)</span> and that of the short test forms (STFs) </font></p>
+<p><font size="4"> <em>Minimize the distance</em> between <span class="math inline">\(TIF^*\)</span> and that of the short test forms (STFs) </font></p>
 </div>
 </div>
 </div>
@@ -1472,10 +1489,10 @@ Ottavia M. Epifania &amp; Friends
 </div>
 <p><span class="math inline">\(\forall Q \in\mathcal{Q} = 2^B \setminus \{\emptyset, B\}\)</span>,</p>
 <ol type="1">
-<li><span class="math inline">\(\mathbf{TIF}^{Q} =  \frac{\sum_{i \in Q} IIF_i}{||Q||}\)</span></li>
-<li><span class="math inline">\(\overline{\Delta}_{\mathbf{TIF}^{Q}} =  \mathit{mean}(|\mathbf{TIF}^* - \mathbf{TIF}^{Q}|)\)</span></li>
+<li><span class="math inline">\(TIF^{Q} =  \frac{\sum_{i \in Q} IIF_i}{||Q||}\)</span></li>
+<li><span class="math inline">\(\overline{\Delta}_{TIF^{Q}} =  \mathit{mean}(|TIF^* - TIF^{Q}|)\)</span></li>
 </ol>
-<p><span class="math inline">\(Q_{bruto} = \arg \min_{Q \in \mathcal{Q}} \overline{\Delta}_{\mathbf{TIF}^{Q}}\)</span></p>
+<p><span class="math inline">\(Q_{bruto} = \arg \min_{Q \in \mathcal{Q}} \overline{\Delta}_{TIF^{Q}}\)</span></p>
 </section>
 <section id="ila-isa" class="slide level2">
 <h2>ILA &amp; ISA</h2>
@@ -1489,26 +1506,27 @@ Ottavia M. Epifania &amp; Friends
 <p>ILA</p>
 <p><font size="4"> At <span class="math inline">\(k = 0\)</span>: <span class="math inline">\(TIF^0(\theta) = 0 \, \forall \theta\)</span>, <span class="math inline">\(Q^0 = \emptyset\)</span>. For <span class="math inline">\(k \geq 0\)</span>,</font></p><font size="4">
 <ol type="1">
-<li><span class="math inline">\(\theta_{target} := \arg \max |\mathbf{TIF}^* - \mathbf{TIF}^{k}|\)</span></li>
+<li><span class="math inline">\(\theta_{target} := \arg \max |TIF^* - TIF^{k}|\)</span></li>
 </ol>
 <div class="fragment highlight-red">
 <ol start="2" type="1">
-<li><span class="math inline">\(i^* = \arg \min_{i \in B\setminus Q^{k}} |\theta_{target} - b_i|\)</span></li>
+<li><span class="math inline">\(i^* := \arg \min_{i \in B\setminus Q^{k}} |\theta_{target} - b_i|\)</span></li>
 </ol>
 </div>
 <ol start="3" type="1">
-<li><p><span class="math inline">\(\mathbf{pTIF}_{i^*} = \frac{TIF^k + IIF_{i^*}}{||Q^{k}|| + 1}\)</span></p></li>
-<li><p>Termination Criterion: <span class="math inline">\(|\mathbf{TIF}^* - \mathbf{pTIF}_{i^*}| \geq |\mathbf{TIF}^* - \mathbf{TIF}^{k}|\)</span>:</p></li>
+<li><p><span class="math inline">\(pTIF_{i^*} = \frac{TIF^k + IIF_{i^*}}{||Q^{k}|| + 1}\)</span></p></li>
+<li><p>Termination Criterion: <span class="math inline">\(|TIF^* - pTIF_{i^*}| \geq |TIF^* - TIF^{k}|\)</span>:</p></li>
 </ol>
-</font><ul><font size="4">
+<ul>
 <li>FALSE: <span class="math inline">\(Q^{k+1} = Q^{k} \cup \{i^*\}\)</span>, <span class="math inline">\(TIF^{k+1} = pTIF_{i^*}\)</span>, iterates 1-4</li>
-</font><li><font size="4">TRUE: Stop, <span class="math inline">\(Q_{ILA} = Q^k\)</span> </font></li>
+<li>TRUE: Stop, <span class="math inline">\(Q_{ILA} = Q^k\)</span></li>
 </ul>
+</font><p><font size="4"></font></p>
 </div><div class="column" style="width:50%;">
 <p>ISA</p>
 <p><font size="4"> At <span class="math inline">\(k = 0\)</span>: <span class="math inline">\(TIF^0(\theta) = 0 \, \forall \theta\)</span>, <span class="math inline">\(Q^0 = \emptyset\)</span>. For <span class="math inline">\(k \geq 0\)</span>,</font></p><font size="4">
 <ol type="1">
-<li><span class="math inline">\(\theta_{target} := \arg \max |\mathbf{TIF}^* - \mathbf{TIF}^{k}|\)</span></li>
+<li><span class="math inline">\(\theta_{target} := \arg \max |TIF^* - TIF^{k}|\)</span></li>
 </ol>
 <div class="fragment highlight-red">
 <ol start="2" type="1">
@@ -1516,13 +1534,14 @@ Ottavia M. Epifania &amp; Friends
 </ol>
 </div>
 <ol start="3" type="1">
-<li><p><span class="math inline">\(\mathbf{pTIF}_{i^*} = \frac{TIF^k + IIF_{i^*}}{||Q^{k}|| + 1}\)</span></p></li>
-<li><p>Termination Criterion: <span class="math inline">\(|\mathbf{TIF}^* - \mathbf{pTIF}_{i^*}| \geq |\mathbf{TIF}^* - \mathbf{TIF}^{k}|\)</span>:</p></li>
+<li><p><span class="math inline">\(pTIF_{i^*} = \frac{TIF^k + IIF_{i^*}}{||Q^{k}|| + 1}\)</span></p></li>
+<li><p>Termination Criterion: <span class="math inline">\(|TIF^* - pTIF_{i^*}| \geq |TIF^* - TIF^{k}|\)</span>:</p></li>
 </ol>
-</font><ul><font size="4">
+<ul>
 <li>FALSE: <span class="math inline">\(Q^{k+1} = Q^{k} \cup \{i^*\}\)</span>, <span class="math inline">\(TIF^{k+1} = pTIF_{i^*}\)</span>, iterates 1-4</li>
-</font><li><font size="4">TRUE: Stop, <span class="math inline">\(Q_{ISA} = Q^k\)</span> </font></li>
+<li>TRUE: Stop, <span class="math inline">\(Q_{ISA} = Q^k\)</span></li>
 </ul>
+</font><p><font size="4"></font></p>
 </div></div>
 </section>
 <section id="frank" class="slide level2">
@@ -1533,7 +1552,7 @@ Ottavia M. Epifania &amp; Friends
 <li><p><span class="math inline">\(A^k = B \setminus Q^k\)</span></p></li>
 <li><p><span class="math inline">\(\forall i \in A^k\)</span>, <span class="math inline">\(pTIF_{i}^k = \frac{TIF^k + IIF_{i}}{||Q^k||+1}\)</span></p></li>
 <li><p><span class="math inline">\(i^* = \arg \min_{i \in A^k} |TIF^* - pTIF_i^k|\)</span></p></li>
-<li><p>Termination criterion: <span class="math inline">\(|\mathbf{TIF}^* - \mathbf{pTIF}_{i^*}| \geq |\mathbf{TIF}^* - \mathbf{TIF}^{k}|\)</span>:</p></li>
+<li><p>Termination criterion: <span class="math inline">\(|TIF^* - pTIF_{i^*}| \geq |TIF^* - TIF^{k}|\)</span>:</p></li>
 </ol>
 <ul>
 <li><p>FALSE, <span class="math inline">\(k = k + 1,\)</span> <span class="math inline">\(Q^{k+1} = Q^k \cup \{D\}\)</span>, iterates 1-4</p></li>
@@ -1553,19 +1572,22 @@ Ottavia M. Epifania &amp; Friends
 <li><p>Difficulty parameters: <span class="math inline">\(\mathcal{U}(-3, 3)\)</span></p></li>
 <li><p>Discrimination parameters: <span class="math inline">\(\mathcal{U}(.90, 2.0)\)</span></p></li>
 </ul></li>
-<li><p>Random item selections of lengths <span class="math inline">\(l\)</span> from <span class="math inline">\(B\)</span> (<span class="math inline">\(M_l = 5.01 \pm 2.99\)</span>) + randomly drawn values <span class="math inline">\(\mathcal{U}(-0.20, 0.20)\)</span> <span class="math inline">\(\rightarrow\)</span> <span class="math inline">\(\mathbf{TIF}^*\)</span></p></li>
-<li><p>Considering <span class="math inline">\(\mathbf{TIF}^*\)</span> at Step 2 and item parameters at Step 1:</p>
+<li><p>Random item selections of lengths <span class="math inline">\(l\)</span> from <span class="math inline">\(B\)</span> (<span class="math inline">\(M_l = 5.01 \pm 2.99\)</span>) + randomly drawn values <span class="math inline">\(\mathcal{U}(-0.20, 0.20)\)</span> <span class="math inline">\(\rightarrow\)</span> <span class="math inline">\(TIF^*\)</span></p></li>
+<li><p>Considering <span class="math inline">\(TIF^*\)</span> at Step 2 and item parameters at Step 1:</p>
 <ul>
 <li><p>Bruto <span class="math inline">\(\rightarrow\)</span> Systematically tests</p></li>
-<li><p>ILA <span class="math inline">\(\rightarrow\)</span> Forwardly searches considering a single <span class="math inline">\(\theta\)</span></p></li>
+<li><p>ILA/ISA <span class="math inline">\(\rightarrow\)</span> Forwardly searches considering a single <span class="math inline">\(\theta\)</span></p></li>
 <li><p>Frank <span class="math inline">\(\rightarrow\)</span> Forwardly searches considering the whole latent trait</p></li>
 </ul></li>
 </ol>
 </div>
 <div id="tabset-9-2">
 <ul>
-<li><p>Computational Time &amp; Successful attempts</p></li>
-<li><p>Percentile rank of <span class="math inline">\(Q_x, x \in \{\text{ILA}, \text{ISA}, \text{Frank}\}\)</span>: <span class="math inline">\(\forall (Q, Q') \in \mathcal(Q), Q \preceq Q' \Rightarrow mean(|TIF^* - TIF_Q| \leq |TIF^* - TIF_{Q'}|)\)</span></p></li>
+<li>Computational Time &amp; Successful attempts</li>
+</ul>
+<p><br></p>
+<ul>
+<li><p>Percentile rank of <span class="math inline">\(Q_x, x \in \{\text{ILA}, \text{ISA}, \text{Frank}\}\)</span>: <span class="math inline">\(\forall (Q, Q') \in \mathcal{Q}, Q \preceq Q' \Rightarrow mean(|TIF^* - TIF_Q| \leq |TIF^* - TIF_{Q'}|)\)</span> <br></p></li>
 <li><p>Symmetric distance: <span class="math inline">\(Q_x \Delta Q_{Bruto} = ||\{(Q_x \setminus Q_{Bruto}) \cup (Q_{Bruto} \setminus Q_{x}) \}||\)</span></p></li>
 </ul>
 <!-- - Accuracy: $||\{(Q_x \cap Q_{bruto}) \cup B \setminus (Q_x \cup Q_{bruto})\}||/ ||B||$ -->
@@ -1585,31 +1607,19 @@ Ottavia M. Epifania &amp; Friends
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="irt-stf_files/figure-revealjs/unnamed-chunk-21-1.png" class="quarto-figure quarto-figure-center" style="width:70.0%"></p>
+<p><img data-src="irt-stf_files/figure-revealjs/unnamed-chunk-22-1.png" class="quarto-figure quarto-figure-center" style="width:70.0%"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="callout callout-warning callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>!!!</strong></p>
-</div>
-<div class="callout-content">
-<p>ILA &amp; ISA failed to find a STF in the 7% and 18% of the replications</p>
-</div>
-</div>
-</div>
+<p><font size="4"> ILA &amp; ISA failed to find a STF in the 7% and 18% of the replications </font></p>
 </div>
 <div id="tabset-10-2">
 <div class="cell">
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="irt-stf_files/figure-revealjs/unnamed-chunk-22-1.png" width="960"></p>
+<p><img data-src="irt-stf_files/figure-revealjs/unnamed-chunk-23-1.png" width="960"></p>
 </figure>
 </div>
 </div>
@@ -1620,7 +1630,7 @@ Ottavia M. Epifania &amp; Friends
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="irt-stf_files/figure-revealjs/unnamed-chunk-23-1.png" width="960"></p>
+<p><img data-src="irt-stf_files/figure-revealjs/unnamed-chunk-24-1.png" width="960"></p>
 </figure>
 </div>
 </div>
