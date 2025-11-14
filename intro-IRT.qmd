@@ -1,0 +1,1469 @@
+---
+title: "Piccola Introduzione ai Modelli Item response Theory"
+author: "Ottavia M. Epifania"
+format: 
+  revealjs: 
+    slide-level: 3
+    slide-number: c/t
+    theme: mytheme.scss
+    logo: "www/psicostat.jpg"
+    footer: "Lezione @ Milano-Bicocca"
+# background-opacity: "0.45"
+#    data-background-size: 400px, cover
+#    data-background-position: 50% 10%, center
+---
+
+
+```{css include = FALSE}
+.reveal .slide-logo {
+  height: 100px !important;
+  width: 100px !important;
+  max-width: unset !important;
+  max-height: unset !important;
+}
+.title-hex{
+  height: 10px;
+  align: right;
+  float: right;
+}
+.h3 {
+text-align: center;
+}
+```
+
+
+
+```{r, setup, include=FALSE}
+library(knitr)
+library(shiny)
+library(ggplot2)
+library(tidyverse)
+library(emoji)
+hexes <- function(x) {
+  x <- rev(sort(x))
+  markup <- function(img) glue::glue('<img width="10%" height="10%" src="www/{img}.jpg" class="title-hex">')
+  res <- purrr::map_chr(x, markup)
+  paste0(res, collapse = "")
+}
+IRT <- function(theta, a = 1, b = 0, c = 0,e = 1) {
+  y <- c + (e - c) * exp(a * (theta - b)) / (1 + exp(a * (theta - b)))
+  return(y)
+}
+# calcola l'IIF per un item specifico
+i_info <- function(b, a=1,c=0, e= 1,  theta = seq(-5,5,length.out=1000)){
+  Ii = (a^2)*IRT(theta, b = b, a = a, e = e )*(1- IRT(theta, b = b, a = a, e = e ))
+  return(Ii)
+}
+# calcola l'IIF di tutti gli item e restituisce in una lista di lunghezza ugaule a tutti 
+# gli item per cui si è calcolata l'IIF
+item_info <- function(ipar, theta = seq(-5,5,length.out=1000)){
+  item <- NULL
+  if (any(colnames(ipar) == "e")) {
+    for(i in 1:nrow(ipar)){
+      item[[i]] <- i_info(b = ipar[i, "b"],a = ipar[i, "a"], e = ipar[i, "e"], theta = theta)
+    } 
+  } else {
+    for(i in 1:nrow(ipar)){
+      item[[i]] <- i_info(b = ipar[i, "b"],a = ipar[i, "a"], theta = theta)
+    }
+  }
+  item = data.frame(do.call("cbind", item))
+  colnames(item) = rownames(ipar)
+  return(item)
+}
+set.seed(999)
+```
+
+# Introduzione
+
+## Variabili latenti
+
+
+###
+
+<br>
+
+- Variabili che *non si possono osservare direttamente* $\rightarrow$ **Variabili Latenti** (e.g., Intelligenza, Depressione, Ansia, Estroversione)
+
+- Infeirte dagli indicatori $\rightarrow$ **Variabili Osservate** (e.g., risposte alle matrici di Raven)
+
+<br>
+
+.  .  .
+
+- *Operazionalizzazione* della variabili latente è di vitale importanza
+
+
+### Esempio
+
+Osserviamo Giorgio e vediamo che Giorgio: 
+
+* ha tanti amici 
+
+* è contento quando ha tante persone intorno 
+
+* cerca sempre di rimanere in contatto con le persone 
+
+* partecipa a tanti eventi sociali
+
+- $\ldots$
+
+I comportamenti di Giorgio (***Variabili osservate***) sono spiegabili sulla base del costrutto latente (***variabile latente***) <span style="color:#9B0014;">estroversione</span>
+
+
+## Modelli per variabili latenti
+
+###
+
+Modelli matematici che permettono di collegare le variabili latenti con le variabili manifeste
+
+Assunzioni: 
+
+-  Le variabili latenti sono la "causa" della variabilità nelle varibaili osservate
+
+- *Indipendenza Locale*: Una volta presa in considerazione l’effetto della variabile latente, la correlazione tra le variabili manifeste svanisce
+
+```{r echo = F, out.width="60%"}
+#| fig-align: "center"
+knitr::include_graphics("www/latent.png")
+```
+
+
+### A ognuno il suo 
+
+```{r out.width="80%", echo = F}
+#| fig-align: "center"
+knitr::include_graphics("www/mavl.png")
+```
+
+
+
+### IRT vs. CTT
+
+<br>
+
+Sia i modelli dell’IRT sia la Classical Test Theory (CTT) hanno come obiettivo la misurazione delle persone 
+
+> Stabilire la posizione delle persone sul tratto latente di interesse e il loro ordinamento
+
+<br>
+
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+**IRT**
+:::
+
+<br>
+
+::: {.r-stack}
+Focus $\rightarrow$ Items
+:::
+
+:::
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+
+**CTT**
+:::
+
+<br>
+
+::: {.r-stack}
+
+Focus $\rightarrow$ Test
+
+:::
+:::
+
+::::
+
+
+# Basics of IRT
+
+###
+
+<br>
+
+La probabilità di una risposta osservata (variabile manifesta) dipende sia dalle caratteristiche della persona sia dalle caratteristiche dell’item
+
+Le caretteristiche della <span style="color:#9B0014;">persona</span> possono essere descittre da un parametro relativo alla persona  $\rightarrow$  Costrutto Latente (e.g., intelligenza, Ansia, ecc.)
+
+
+Le caratteristiche dell’item possono essere descritte da uno o più parametri (**difficoltà**, **discriminatività**, **guessing**, **careless error**)
+
+Le caratteristihce degli item e della persona stanno sullo stesso tratto latente 
+
+
+## A ognuno il suo... modello IRT 
+
+<br>
+
+Diversi modelli IRT a seconda del: 
+
+- **Tratto Latente**: 
+
+::: {.fragment .highlight-red fragment-index=2}
+
+  - Modelli unidimensionali
+
+:::
+
+  - Modelli multidimensionali
+  
+- **Categorie di risposta**: 
+
+::: {.fragment .highlight-red fragment-index=2}
+
+  - Item con risposta dicotomica (e.g., true/false, agree/disagree)
+
+:::
+
+  - Item con risposta politomica (almeno tre categorie di risposta, e.g., Likert-type scale)
+
+# Assunzioni dei modelli IRT 
+###
+
+<br>
+
+1. Monotonicità
+
+2. Unidimensionalità
+
+::: {.fragment .highlight-red}
+3. Inidpendenza locale
+:::
+
+. . . 
+
+Se le assunzioni vengono violate, il modello può sempre essere fittato, ma la sua interpretazione e l'intepretazione delle sue stime sono prive di significato
+
+
+## Monotonicità
+
+### 
+
+La probabilità di rispondere correttamente agli item aumenta all'aumentare del livello del tratto latente
+
+
+Se questa assunzione viene violata, si hanno dei porblemi a livello di validità e attendibilità della misura
+
+
+. . .
+
+
+```{r}
+set.seed(2025)
+
+library(ggplot2)
+library(dplyr)
+
+# ------------------------------------------------
+# 1) Simulazione
+# ------------------------------------------------
+N <- 2000
+theta <- rnorm(N, 0, 1)
+
+# Creo diversi item che dipendono da theta (questi costruiranno lo score totale)
+J_score <- 8
+a_vals <- runif(J_score, 0.8, 1.8)
+b_vals <- rnorm(J_score, 0, 1)
+
+items_for_score <- sapply(1:J_score, function(j) {
+  p <- plogis(a_vals[j] * (theta - b_vals[j]))   # ICC logistica
+  rbinom(N, 1, p)
+})
+colnames(items_for_score) <- paste0("it_score_", 1:J_score)
+
+# Item monotono target (dipende direttamente da theta)
+a_m <- 1.6; b_m <- 0.2
+p_mono <- plogis(a_m * (theta - b_m))
+item_mono <- rbinom(N, 1, p_mono)
+
+# Item NON monotono target (funzione a campana attorno a theta = 0.5)
+# normalizziamo la funzione per avere probabilità in [0,1]
+p_non <- exp(-((theta - 0.5)^2) / (2 * 0.4^2))
+# eventualmente scalare al massimo < 1
+p_non <- p_non / max(p_non) * 0.98
+item_non <- rbinom(N, 1, p_non)
+
+# Dataset
+dat <- data.frame(items_for_score, item_mono = item_mono, item_non = item_non)
+
+# ------------------------------------------------
+# 2) Score totale — sommo gli item che dipendono da theta
+#    (NON includo item_non; includo item_mono opzionalmente)
+# ------------------------------------------------
+# includo gli items_for_score + item_mono per rendere score più informativo
+score_tot <- rowSums(dat %>% select(starts_with("it_score_"), item_mono))
+dat$score_tot <- score_tot
+
+# ------------------------------------------------
+# 3) Calcolo proporzioni osservate per ogni livello di score
+#    (attenzione: alcuni livelli possono avere pochi soggetti)
+# ------------------------------------------------
+prop_df <- dat %>%
+  group_by(score_tot) %>%
+  summarise(
+    n = n(),
+    prop_mono = mean(item_mono),
+    prop_non  = mean(item_non)
+  ) %>%
+  ungroup()
+
+# Se vuoi ridurre rumore: raggruppa livelli di score con pochi casi (opzionale)
+# qui esempio: raggruppo in quantili per smoothing (sostituisci i plot seguenti se preferisci)
+dat$score_bin_q <- ntile(dat$score_tot, 12)  # 12 gruppi quantili
+
+prop_q <- dat %>%
+  group_by(score_bin_q) %>%
+  summarise(
+    n = n(),
+    mean_score = mean(score_tot),
+    prop_mono = mean(item_mono),
+    prop_non  = mean(item_non)
+  )
+
+# ------------------------------------------------
+# 4) Grafici
+# ------------------------------------------------
+
+# # A: grafico per ogni livello di score_tot (più dettagliato, più rumore possibile)
+# p1 <- ggplot(prop_df, aes(x = score_tot, y = prop_mono, size = n)) +
+#   geom_point(alpha = 0.8) + geom_line(aes(group = 1)) +
+#   scale_size_continuous(range = c(1,6)) +
+#   labs(title = "Proporzione osservata per item MONOTONO\n(Score totale correlato con theta)",
+#        x = "Score totale",
+#        y = "Proporzione risposte corrette",
+#        subtitle = "punti dimensionati per numerosità del livello di score") +
+#   theme_minimal()
+# 
+# p2 <- ggplot(prop_df, aes(x = score_tot, y = prop_non, size = n)) +
+#   geom_point(alpha = 0.8) + geom_line(aes(group = 1)) +
+#   scale_size_continuous(range = c(1,6)) +
+#   labs(title = "Proporzione osservata per item NON MONOTONO\n(Score totale correlato con theta)",
+#        x = "Score totale",
+#        y = "Proporzione risposte corrette",
+#        subtitle = "punti dimensionati per numerosità del livello di score") +
+#   theme_minimal()
+new_prop = prop_q[,-ncol(prop_q)]
+new_prop1 = prop_q[, -(ncol(prop_q)-1)] 
+colnames(new_prop1)[ncol(new_prop1)] = colnames(new_prop)[ncol(new_prop)]
+new_prop1$type = "Item Non Monotoni"
+new_prop$type = "Item Monotoni"
+myprop = rbind(new_prop, new_prop1)
+
+ggplot(myprop, 
+       aes(x = mean_score, y = prop_mono, 
+           linetype = type, color = type, group = type)) + 
+  geom_point(size = 2)+ geom_line(linewidth=1.2) + theme_light()+ 
+  ylab("Item Probability") + xlab("Score totale") + 
+  theme(axis.text = element_text(size = 20), 
+        axis.title = element_text(size = 22), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = 20), 
+        legend.position = c(.2,.8))
+
+# # B: grafico smoothed per quantili (più stabile, usabile per presentazione)
+# p1q <- ggplot(prop_q, aes(x = mean_score, y = prop_mono)) +
+#   geom_point() + geom_line() +
+#   labs(title = "Item monotono — proporzioni per bin (quantili dello score)",
+#        x = "Media score nel bin",
+#        y = "Proporzione corrette") + theme_minimal()
+# 
+# p2q <- ggplot(prop_q, aes(x = mean_score, y = prop_non)) +
+#   geom_point() + geom_line() +
+#   labs(title = "Item NON monotono — proporzioni per bin (quantili dello score)",
+#        x = "Media score nel bin",
+#        y = "Proporzione corrette") + theme_minimal()
+# 
+# # Stampa
+# print(p1); print(p2)
+# print(p1q); print(p2q)
+
+
+```
+
+
+## Unidimensionalità 
+
+### 
+
+L’assunzione di **unidimensionalità** indica che un solo tratto latente è responsabile delle risposte agli item
+
+```{r}
+#| layout-ncol: 2
+
+#| warning: false
+#| message: false
+
+
+# ------------------------------------------------------------
+# 1. SIMULAZIONE: UNIDIMENSIONALITÀ vs MULTIDIMENSIONALITÀ
+# ------------------------------------------------------------
+set.seed(123)
+
+N  <- 1000   # numero partecipanti
+J  <- 12     # numero item
+
+# --------------------------
+# UNIDIMENSIONALITÀ
+# --------------------------
+theta_uni <- rnorm(N)
+
+# parametri item (discriminazioni e difficoltà)
+a_uni <- runif(J, 1.0, 2.0)
+b_uni <- rnorm(J, 0, 1)
+
+# risposte simulate logistic-IRT
+resp_uni <- sapply(1:J, function(j) {
+  p <- plogis(a_uni[j] * (theta_uni - b_uni[j]))
+  rbinom(N, 1, p)
+})
+
+colnames(resp_uni) <- paste0("Item_", 1:J)
+
+# --------------------------
+# MULTIDIMENSIONALITÀ (2 fattori)
+# --------------------------
+# 6 item sul fattore 1, 6 item sul fattore 2
+theta1 <- rnorm(N)
+theta2 <- rnorm(N)
+
+a1 <- runif(6, 1.0, 2.0)
+a2 <- runif(6, 1.0, 2.0)
+
+b1 <- rnorm(6, 0, 1)
+b2 <- rnorm(6, 0, 1)
+
+# risposte IRT 2D (ogni item carica su un solo fattore)
+resp_multi_part1 <- sapply(1:6, function(j) {
+  p <- plogis(a1[j] * (theta1 - b1[j]))
+  rbinom(N, 1, p)
+})
+
+resp_multi_part2 <- sapply(1:6, function(j) {
+  p <- plogis(a2[j] * (theta2 - b2[j]))
+  rbinom(N, 1, p)
+})
+
+resp_multi <- cbind(resp_multi_part1, resp_multi_part2)
+colnames(resp_multi) <- paste0("Item_", 1:J)
+
+library(ggplot2)
+library(reshape2)
+
+# ------------------------------------------------------------
+# Heatmap per UNIDIMENSIONALITÀ
+# ------------------------------------------------------------
+cor_uni <- cor(resp_uni)
+df_uni <- melt(cor_uni)
+
+ggplot(df_uni, aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(limits = c(-1,1)) +
+  labs(x = "", y = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# ------------------------------------------------------------
+# Heatmap per MULTIDIMENSIONALITÀ
+# ------------------------------------------------------------
+cor_multi <- cor(resp_multi)
+df_multi <- melt(cor_multi)
+
+ggplot(df_multi, aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(limits = c(-1,1)) +
+  labs( x = "", y = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# capture.output(
+#   psych::fa.parallel(cor_uni, fa="fa")
+# )
+# capture.output(
+#   psych::fa.parallel(cor_multi, fa="fa")
+# )
+
+
+```
+
+
+
+## Dipendenza Locale
+
+### 
+
+L’assunzione di **indipendenza locale** indica che non esiste alcuna relazione tra le risposte di un soggetto ad item diversi dopo aver controllato per il tratto latente
+
+
+```{r}
+#| layout-ncol: 2
+library(MASS)
+
+set.seed(123)
+
+# ------------------------------
+# 1) INDIPENDENZA LOCALE
+# ------------------------------
+
+# residui indipendenti
+res_ind <- matrix(rnorm(500 * 5), ncol = 5)
+colnames(res_ind) <- paste0("Item", 1:5)
+
+corr_ind <- cor(res_ind)
+
+# riordino in formato lungo per ggplot
+df_ind <- melt(corr_ind)
+
+# heatmap
+ggplot(df_ind, aes(Var1, Var2, fill = value)) +
+  geom_tile() +geom_tile() +
+  scale_fill_gradient2(
+  low = "darkred",
+  mid = "white",
+  high = "darkblue",
+  limits = c(-1, 1),
+  midpoint = 0
+) +
+  labs(
+       x = "", y = "") +
+  theme_minimal() + 
+  theme(legend.position = "bottom", 
+        axis.text = element_text(size = 20), 
+        legend.text = element_text(size = 18), 
+        legend.title = element_blank())
+
+Sigma <- matrix(0, 5, 5)
+diag(Sigma) <- 1
+Sigma[1,2] <- Sigma[2,1] <- 0.7  # dipendenza locale
+
+# generazione residui con correlazione
+res_dep <- mvrnorm(n = 500, mu = rep(0, 5), Sigma = Sigma)
+colnames(res_dep) <- paste0("Item", 1:5)
+
+corr_dep <- cor(res_dep)
+
+# formato lungo
+df_dep <- melt(corr_dep)
+
+# heatmap
+ggplot(df_dep, aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(
+  low = "darkred",
+  mid = "white",
+  high = "darkblue",
+  limits = c(-1, 1),
+  midpoint = 0
+) +
+  labs(
+       x = "", y = "") +
+  theme_minimal() + 
+  theme(legend.position = "bottom", 
+        axis.text = element_text(size = 20), 
+        legend.text = element_text(size = 18), 
+        legend.title = element_blank())
+```
+
+  
+# Modelli  per risposte dicotomiche
+
+
+
+### In generale
+
+<br>
+
+
+- Le caratteristiche delle persone e degli item si trovano sullo stesso tratto latente
+
+- Al variare della distanza sul tratto latente, la probabilità di osservare una risposta positiva cambia 
+
+- (Nella maggior parte dei casi) Quando il parametro relativo alla persona e il parametro relativo all'item sono uguali si ha il 50% di probabilità di osservare una risposta positiva
+
+###
+
+
+Si distinguono in base al numero di parametri che descrivono le caratteristiche degli item: 
+
+* Modello logistico a un parametro (one-parameter logistic model; 1PL) Analogo al modello di Rasch (a un GLM...)
+
+* Modello logistico a due parametri (two-parameter logistic model; 2PL) 
+
+* Modello logistico a tre parametri (three-parameter logistic model; 3PL) 
+
+* Modello logistico a quattro parametri (four-parameter logistic model; 4PL; usato raramente)
+
+
+# The 1-Parameter Logistic Model 
+
+### Item Response Function
+
+$$P(x_{pi} = 1| \theta_p, b_i) = \dfrac{\exp(\theta_p - b_i)}{1 + \exp(\theta_p - b_i)}$$
+
+. . . 
+
+::: {.panel-tabset}
+
+## Un item, una location $b_i$
+
+
+```{r echo = F, out.width = "85%"}
+par(mar = c(5,7,4,2) + 0.1) 
+theta = seq(-4,4, length.out = 1500)
+plot(theta, IRT(theta, b = 1, a = 1),
+     cex.lab= 2, 
+     cex.axis =1, cex.main = 2,
+       xlab = expression(theta), 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ")")),
+       xlim = c(-4, 4), ylim = c(0, 1), 
+     type = "l", lwd = 3, 
+     col = "royalblue", main = "Item Characteristic Curve (ICC)")
+
+mtext("b = 1", side = 1, at = 1, cex = 1.5, padj = 1)
+
+segments(-7, 0.5, 
+         1, 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(1, -0.5, 
+         1, 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+```
+
+
+## Multiple items, mutliple $b_i$
+
+
+```{r, out.width = "85%"}
+b = seq(-2.5, 2.5, length = 5)
+a = rep(1, length(b))
+
+my_colors <- RColorBrewer::brewer.pal(6, "Blues")[2:6]
+
+par(mar = c(5,7,4,2) + 0.1) 
+plot(theta, IRT(theta, b = b[1], a = a[1]),
+     cex.lab= 2, 
+     cex.axis =1, cex.main = 2,
+       xlab = expression(theta), ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ")")), 
+     main = "ICC - Different locations",
+       xlim = c(-4, 4), ylim = c(0, 1), 
+     type = "l", lwd = 3, 
+     col = my_colors[1])
+  
+segments(-7, 0.5, 
+         b[1], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(b[1], -0.5, 
+         b[1], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+
+si = data.frame(item1 = b[1], item2 = b[2], item3 = b[3], 
+                item4 = b[4], item5 = b[5])
+rownames(si) = "b"
+text(x= -2, y = 0.8, colnames(si)[1], col = my_colors[1], cex = 2)
+
+
+
+for ( i in 2:length(b)) {
+  lines(theta, IRT(theta, b=b[i], 
+                a = 1), 
+      lty = 1, lwd=3, col = my_colors[i])
+  segments(-7, 0.5, 
+         b[i], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(b[i], -0.5, 
+         b[i], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+text(x= b[i] +.5, 
+     y = 0.8, colnames(si)[i], col = my_colors[i], cex = 2)
+
+}
+
+
+
+
+```
+
+
+:::
+
+
+### Item Information Function
+
+Misura della precisione con cui ogni item misura diversi livello del tratto latente
+
+$$IIF_i(\theta) = P_i(\theta,b_i)Q_i(\theta, b_i)$$
+
+dove chiaramente $Q = 1−P_i($\theta_i,b_i$)$ è la probabilità che di risposta errata all’item $i$
+
+### 
+
+
+Valore massimo quando $\theta_p = b_i$ $\rightarrow$ $P(x_{pi}=1) = P(x_{pi}=0) =0.50$ $\rightarrow$ $I_i = .25$
+
+
+```{r prova}
+b <- 1
+a <- rep(1, length(b))
+# Get all item information
+theta <- matrix(seq(-4,4, length.out=1000))
+ipar = data.frame(b = b, a = a)
+i1 <- item_info(ipar, theta = theta)
+
+plot(theta, i1[,1], ylim= c(0, 1), cex.lab= 2, 
+     cex.axis =1.5, cex.main = 3,
+       xlab = expression(theta), ylab = "Informazione", 
+     type = "l", lwd =2, 
+     col = "royalblue", main = "Item Information Function - IIF")
+segments(-7, 0.25, 
+         1, 0.25, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(1, -0.25, 
+         1, 0.25, 
+         col = "darkred", lty = 3, lwd = 3)
+
+lines(theta, IRT(theta, b=1, 
+                a = 1), 
+      lty = 2, lwd=3, col = "grey")
+```
+
+
+### 
+
+Qualsiasi item è più informativo per i soggetti con abilità uguale alla location dell'item $\rightarrow$ al crescere della distanza tra soggetto e item, cala l'informatività 
+
+Tanti soggetti con livelli diversi di abilità $\rightarrow$ item con livelli di difficoltà distribuiti lungo tutto il continuum latente 
+
+:::: {.columns}
+
+::: {.column width=50%}
+IRT
+
+Meglio item con difficoltà diverse, sparpagliate lungo tutto il tratto latente
+:::
+
+::: {.column width=50%}
+
+CTT
+
+
+Meglio item con difficoltà omogenee
+:::
+
+
+:::
+
+
+### Item con diverse locations: IIF
+
+\vspace*{-15mm}
+
+```{r}
+
+b = seq(-2.5, 2.5, length = 5)
+a = rep(1, length(b))
+ipar = data.frame(b,a)
+my_colors <- RColorBrewer::brewer.pal(6, "Blues")[2:6]
+a <- rep(1, length(b))
+# Get all item information
+iif <- item_info(ipar, theta = theta)
+
+plot(theta, iif$`1`, ylim= c(0, 1), cex.lab= 2, 
+     cex.axis =1.5, cex.main =3,
+       xlab = expression(theta), ylab = "Informazione", 
+     type = "l", lwd =2, 
+     col = my_colors[1], main = "IIF- Item con diverse locations")
+segments(-7, 0.25, 
+         b[1], 0.25, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(b[1], -0.25, 
+         b[1], 0.25, 
+         col = "darkred", lty = 3, lwd = 3)
+text(x= -2, y = 0.4, colnames(si)[1], col = my_colors[1], cex = 2)
+for ( i in 2:length(b)) {
+  lines(theta, iif[, i], 
+      lty = 1, lwd=3, col = my_colors[i])
+  segments(-7, 0.25, 
+         b[i], 0.25, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(b[i], -0.25, 
+         b[i], 0.25, 
+         col = "darkred", lty = 3, lwd = 3)
+text(x= b[i] +.5, 
+     y = 0.4, colnames(si)[i], col = my_colors[i], cex = 2)
+
+}
+
+for ( i in 2:length(b)) {
+  lines(theta, IRT(theta, b=ipar$b[i], 
+                a = 1), 
+      lty = 1, lwd=2, col = "grey")
+}
+
+```
+
+## Test Information Function
+
+###
+
+Restituisce una misura dell'accuratezza con cui il test misura complessivamente il tratto latente: 
+
+$$TIF(\theta) = \sum IIF_i(\theta, b_i) = $$
+
+La TIF permette di prevedere l’accuratezza con cui è
+possibile misurare ogni livello di tratto latente
+
+Simile al concetto di attendibilità in CTT
+
+### 
+
+
+```{r}
+plot(theta, rowSums(iif), cex.lab= 2, 
+     cex.axis =1.5,
+       xlab = expression(theta), ylab = "Informazione", 
+     type = "l", lwd =2, 
+     col = "black", ylim = c(0,1))
+
+for ( i in 1:length(b)) {
+  lines(theta, iif[, i], 
+      lty = 1, lwd=3, col = my_colors[i])
+}
+```
+
+
+### Standard Error of Measurement (SEM)
+
+<br>
+
+<br>
+
+Descrive la precisione della misurazione: 
+
+$$SEM(\theta) = \sqrt{\dfrac{1}{I(\theta)}} = \sqrt{\dfrac{1}{P_i(\theta, b_i)Q_i(\theta, b_i)}} $$
+Maggiore è l'informazione, minore è il SEM
+
+Minore è l'informazione, maggiore è il SEM
+
+A differenza della CTT, non si assume che l'errore di misura sia uguale per tutti i soggetti
+
+### 
+
+<br>
+
+<br>
+
+```{r}
+#| layout-ncol: 2
+sum_info = rowSums(iif)
+plot(theta, sum_info, cex.lab= 2, 
+     cex.axis =1.5,
+       xlab = expression(theta), ylab = "SEM", 
+     type = "l", lwd =2, 
+     col = "darkblue", main = "TIF", cex.main = 3)
+
+plot(theta, sqrt(1/sum_info), cex.lab= 2, 
+     cex.axis =1.5,
+       xlab = expression(theta), ylab = "SEM", 
+     type = "l", lwd =2, 
+     col = "firebrick", main = "SEM", cex.main = 3)
+
+
+
+```
+
+
+# The 2-Parameter Logistic Model 
+
+### Item Response Function 
+
+
+$$P(x_{pi} = 1|\theta_p, b_i, a_i) = \frac{\exp[a_i(\theta_p - b_i)])}{1 + \exp[a_i(\theta_p - b_i)]}$$
+
+::: {.panel-tabset}
+
+
+## $a < 1$
+
+```{r}
+par(mar = c(5,7,4,2) + 0.1) 
+library(png)
+lisa = readPNG( "www/lisa.png")
+bart = readPNG( "www/bart.png")
+
+plot(theta, IRT(theta, a = 0.5, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3)
+text(x= 3.2, 
+     y = 0.95, expression(paste(a[1], "= 0.50")), 
+     col = "black", cex = 2)
+
+segments(-7, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         1, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+mycol = rgb(.54, .114, .89)
+segments(1, -exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+        1, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+
+segments(-7, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+
+rasterImage(lisa, 0.6, -0.10, 1.5, 0.15)
+rasterImage(bart, -1.5, -0.10, -0.5, 0.15)
+
+
+# segments(-7, exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#          1, exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#          col = "red", lty = 3, lwd = 3)
+# segments(1, -exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#         1, exp(2.5 *(1))/(1+exp(2.5 *(1))),
+#          col = "red", lty = 3, lwd = 3)
+# 
+# segments(-7, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+#          -1, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+#          col = "royalblue4", lty = 3, lwd = 3)
+segments(-1, -exp(0.5 *(-1))/(1+exp(0.5 *(-1))),
+        -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))),
+         col = "royalblue4", lty = 3, lwd = 3)
+
+```
+
+
+## $a > 1.50$
+
+```{r}
+par(mar = c(5,7,4,2) + 0.1) 
+library(png)
+lisa = readPNG( "www/lisa.png")
+bart = readPNG( "www/bart.png")
+
+plot(theta, IRT(theta, a = 0.5, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3)
+text(x= 3.2, 
+     y = 0.95, expression(paste(a[1], "= 0.50")), 
+     col = "black", cex = 2)
+
+segments(-7, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         1, exp(0.5 *(1))/(1+exp(0.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+mycol = rgb(.54, .114, .89)
+
+segments(-7, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+
+
+segments(-7, exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+         1, exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+segments(1, -exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+        1, exp(2.5 *(1))/(1+exp(2.5 *(1))), 
+         col = "red", lty = 3, lwd = 3)
+
+lines(theta, IRT(theta, a = 2.5, b = 0), 
+      lty = 1, lwd=3, col = rgb(.54, .114, .89))
+text(x= -0.8, 
+     y = 0.75, expression(paste(a[2], "= 2.50")), 
+     col = rgb(.54, .114, .89), cex = 2)
+
+
+segments(-7, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+         -1, exp(2.5 *(-1))/(1+exp(2.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+segments(-1, -exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+        -1, exp(0.5 *(-1))/(1+exp(0.5 *(-1))), 
+         col = "royalblue4", lty = 3, lwd = 3)
+rasterImage(lisa, 0.6, -0.10, 1.5, 0.15)
+rasterImage(bart, -1.5, -0.10, -0.5, 0.15)
+```
+
+## $a \to \infty$ 
+
+```{r}
+par(mar = c(5,7,4,2) + 0.1) 
+theta1 = seq(-4, 4, length.out = 15000)
+plot(theta1, IRT(theta1, a = 200, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3, col = "firebrick")
+
+
+```
+
+## $a < 0$
+
+```{r}
+plot(theta, IRT(theta, a = -1.5, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3)
+```
+
+
+:::
+
+
+###
+
+
+
+```{r}
+a = c(0.5, 0.9, 1.5, 1.5)
+b = c(rep(0, (length(a) -1)), 2)
+
+my_colors <- RColorBrewer::brewer.pal(6, "Set3")[c(1, 3:6)]
+my_col = c(my_colors[1:2], my_colors[5], my_colors[5])
+
+
+plot(theta, IRT(theta, b = b[1], a = a[1]),
+     cex.lab= 2.5, 
+     cex.axis =1.5,
+       xlab = expression(theta), 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
+       xlim = c(-4, 4), ylim = c(0, 1), 
+     type = "l", lwd = 3, 
+     col = my_colors[1])
+  
+segments(-7, 0.5, 
+         b[1], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(b[1], -0.5, 
+         b[1], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+
+si = data.frame(item1 = c(b[1], a[1]), 
+                item2 = c(b[2], a[2]), 
+                item3 = c(b[3], a[3]), 
+                item4 = c(b[4], a[4]))
+rownames(si) = c("b", "a")
+
+text(x= -2, y = 0.3, colnames(si)[1], col = my_col[1], cex = 2)
+
+
+
+for ( i in 2:length(b)) {
+  lines(theta, IRT(theta, b=b[i], 
+                a = a[i]), 
+      lty = 1, lwd=3, col = my_col[i])
+  segments(-7, 0.5, 
+         b[i], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+segments(b[i], -0.5, 
+         b[i], 0.5, 
+         col = "darkred", lty = 3, lwd = 3)
+
+
+}
+
+text(x= b[2] -.5, 
+     y = 0.6,  colnames(si)[2], col = my_col[2], cex = 2)
+
+text(x= b[3] +.7, 
+     y = 0.8,  colnames(si)[3], col = my_col[3], cex = 2)
+text(x= b[4] +.7, 
+     y = 0.8,  colnames(si)[4], col = my_col[4], cex = 2)
+```
+
+
+### Item Information Function
+
+
+$$IIF_i(\theta) = a_i^2P_i(\theta, b_i, a_i)Q_i(\theta, b_i, a_i)$$
+
+```{r}
+#| fig-align: center
+#| out-width: 70%
+
+iif = item_info(data.frame(b, a), theta = theta)
+
+plot(theta, iif[,1], type = "l", col =my_colors[1], lwd = 2, cex.lab= 2, 
+     cex.axis =1.5,
+       xlab = expression(theta), ylab = "Informazione", ylim = c(0,1))
+for ( i in 2:length(b)) {
+  lines(theta, iif[, i], 
+      lty = 1, lwd=3, col = my_colors[i])
+}
+for ( i in 1:length(b)) {
+  lines(theta, IRT(theta, b=b[i], 
+                a = a[i]), 
+      lty = 1, lwd=2, col = "grey")
+}
+
+```
+
+### Test Information Function
+
+```{r}
+plot(theta, rowSums(iif), type = "l", lwd = 2, ylab = "TIF", 
+     xlab= expression(theta), cex.axis = 2, cex.lab = 3)
+for ( i in 1:length(b)) {
+  lines(theta, iif[, i], 
+      lty = 1, lwd=1, col = my_colors[i])
+}
+```
+
+
+
+### In summary 
+
+```{r}
+knitr::include_app("https://ottaviae.shinyapps.io/irt-app/", height="1000px")
+```
+
+
+# The 3-Parameter Logistic Model
+
+
+
+
+$$P(x_{pi} = 1| \theta_p, b_i, a_i) = c_i + (1 - c_i) \dfrac{\exp[a_i(\theta_p - b_i)]}{1+\exp[a_i(\theta_p - b_i)]}$$
+
+Il parametro $c_i$ è lo *pseduo-guessing*: Quando $\theta \to -\infty$, $P(x_{pi}) = c_i$
+
+```{r}
+#| out-width: "85%"
+#| fig-align: center
+b = c(0, 0)
+a = c(1.4, 1.4)
+g = c(0.20, 0.30)
+par(mar = c(5,7,4,2) + 0.1) 
+plot(theta, IRT(theta, a = a[1], b = b[1], c= g[1]), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i], ", ", c[i],  ")")), ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, 
+     xlab = expression(theta), lwd = 3, col = my_colors[1])
+text(x= -0.4, 
+     y = 0.90, "item1", 
+     col = my_colors[1], cex = 2)
+
+abline(h = .20, lty = 2, lwd = 2, col = "red")
+abline(h = .30, lty = 2, lwd = 2, col = "red")
+lines(theta, IRT(theta, a = a[2], b = b[2], c= g[2]), 
+     col = my_colors[5], lwd = 3)
+text(x= 3.2, 
+     y = 0.90, "item2", 
+     col = my_colors[5], cex = 2)
+segments(-5, IRT(b[1], a = a[1], b = b[1], c= g[1]), 
+         b[1], IRT(b[1], a = a[1], b = b[1], c= g[1]), my_colors[1], 
+         lty = 3)
+segments(-5, IRT(b[2], a = a[2], b = b[2], c= g[2]), 
+         b[2], IRT(b[2], a = a[2], b = b[2], c= g[2]), my_colors[2], 
+         lty = 3)
+
+segments(b[1], -1, 
+         b[1], IRT(b[1], a = a[1], b = b[1], c= g[1]), my_colors[1], 
+         lty = 3)
+segments(b[2], -2, 
+         b[2], IRT(b[2], a = a[2], b = b[2], c= g[2]), my_colors[2], 
+         lty = 3)
+abline(h=.5, lty =5, col ="grey")
+```
+
+
+### Item Information Function
+
+```{r}
+
+# calcola l'IIF per un item specifico
+i_info <- function(b, a=1,c=0, e= 1,  theta = seq(-5,5,length.out=1000)){
+      P = IRT(theta, b = b, a = a, e = e, c=c)
+      Q = 1 - P 
+      # Ii = (a^2)*(Q/P)*((P-c)/(e-c))^2
+      # Ii = (a^2)*(Q*P/e^2)
+      num = (a^2)*((P-c)^2)*((e-P)^2)
+      den = ((e-c)^2)*P*Q
+      Ii = num/den
+      return(Ii)
+    }
+    
+item_info <- function(ipar, 
+                          theta = seq(-5,5,length.out=1000)){
+      item <- NULL
+      for(i in 1:nrow(ipar)){
+        item[[i]] <- i_info(b = ipar[i, "b"],a = ipar[i, "a"], c = ipar[i, "c"], e = ipar[i, "e"], theta = theta)
+      }
+      item = data.frame(do.call("cbind", item))
+      colnames(item) = rownames(ipar)
+      return(item)
+    }
+ipar = data.frame(b, a, e = 1, c= 0)
+iparg = data.frame(b, a, e= 1, c = g)
+
+iif = item_info(ipar, theta = theta)
+iifg = item_info(iparg)
+
+plot(theta, iifg[,1], theta = theta, type = "l", lwd = 2,
+     col = my_colors[1], 
+     ylab = "IIF", xlab =expression(theta), 
+     cex.axis =2, cex.lab = 3, ylim=c(0,.7))
+
+
+lines(theta, iifg[,2], theta = theta, type = "l", lwd = 2, col = my_colors[2])
+lines(theta, iif[,2], theta = theta, type = "l", lwd = 2, col = my_colors[2], lty = 2)
+lines(theta, iif[,1], theta = theta, type = "l", lwd = 2, col = my_colors[2], lty = 2)
+```
+
+
+
+### Test Information Function
+
+```{r}
+plot(theta, rowSums(iif), type = "l", 
+     ylab = "TIF", xlab = expression(theta), lwd = 2)
+
+lines(theta, rowSums(iifg), type = "l", 
+     ylab = "TIF", xlab = expression(theta), lwd = 2, col = "darkgreen")
+
+
+```
+
+
+# The 4-Parameter Logistic Model 
+
+### Item Response Function
+
+$$P(x_{pi}= 1| \theta_p, b_i, a_i, c_i, d_i) = c_i + (d_i -c_i) \dfrac{\exp[a_i(\theta_p - b_i)]}{1 + \exp[a_i(\theta_p - b_i)]}$$
+
+Il parametro $d_i$ è la *careless error*: Quando $\theta \to +\infty$, $P(x_{pi}) = d_i$
+
+::: {.r-stack}
+::: {.fragment .fade-in-then-out}
+
+
+
+```{r}
+#| out-width: "70%"
+#| fig-align: "center"
+theta = seq(-4,4, length.out = 1000)
+par(mar = c(5,7,4,2) + 0.1) 
+plot(theta, IRT(theta, a = 1.5, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", 
+                             b[i], ", ", a[i], ", ", c[i], ", ", d[i],  ")")),, 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3, col = "seagreen", main = "Item Characteristic Curve - ICC")
+abline(h = 1, lwd = 2, lty = 3, col = "darkgray")
+segments(-7, exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+         0, exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+         col = "seagreen", lty = 3, lwd = 1)
+segments(0, -exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+        0, exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+         col = "seagreen", lty = 3, lwd = 1)
+```
+
+:::
+
+::: {.fragment .fade-in-then-out}
+
+
+
+```{r}
+#| out-width: "70%"
+#| fig-align: "center"
+theta = seq(-4,4, length.out = 1000)
+par(mar = c(5,7,4,2) + 0.1) 
+plot(theta, IRT(theta, a = 1.5, b = 0), 
+     type = "l", 
+     ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", 
+                             b[i], ", ", a[i], ", ", c[i], ", ", d[i],  ")")), 
+     ylim = c(0,1 ), cex.lab= 2, 
+     cex.axis =1.5, xlab = expression(theta), lwd = 3, col = "seagreen", 
+     main = "Item Characteristic Curve - ICC")
+abline(h = 1, lwd = 2, lty = 3, col = "darkgray")
+segments(-7, exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+         0, exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+         col = "seagreen", lty = 3, lwd = 1)
+segments(0, -exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+        0, exp(1.5 *(0))/(1+exp(1.5 *(0))), 
+         col = "seagreen", lty = 3, lwd = 1)
+# item careless 
+lines(theta, IRT(theta, a = 1.5, b = 0, e = .9), col = "darkorchid", lwd = 3)
+segments(-7, IRT(0, a = 1.5, b = 0, e = .9), 
+         0, IRT(0, a = 1.5, b = 0, e = .9), 
+         col = "darkorchid", lty = 3, lwd = 1)
+segments(0, -IRT(0, a = 1.5, b = 0, e = .9), 
+        0, IRT(0, a = 1.5, b = 0, e = .9), 
+         col = "darkorchid", lty = 3, lwd = 1)
+abline(h = .90, lwd = 2, lty = 3, col = "darkgray")
+```
+
+
+:::
+:::
+
+### Item Information Function
+
+
+$$\text{IIF}_{i}(\theta) = \dfrac{a_i^2[P(\theta)-c_i]^2[d_i - P(\theta)]^2}{(d_{i}-c_i)^2 P(\theta)Q(\theta)}$$
+
+
+
+```{r}
+itempar = data.frame(a = c(1.5, 1.5), 
+                     b = c(0, 0), 
+                     c = c(0,0), 
+                     e = c(1,.9))
+iifs = item_info(itempar, theta = theta)
+iifs$theta = theta    
+plot(theta, iifs[,1], cex.lab= 2, 
+         main = "Item Information Functions - IIFs",
+         cex.lab = 1.2, 
+         cex.main = 1.5, 
+ cex.axis=1,
+         xlab = expression(theta), ylab = expression(paste("IIF"[i])),
+         type = "l", lwd =2,
+         col = "seagreen", ylim = c(0,1))
+lines(theta, iifs[,2], lwd =2,
+          col = "darkorchid", lty = 4)
+
+segments(-7, max(iifs[,1]), 
+         iifs$theta[iifs$`1` == max(iifs$`1`)], max(iifs[,1]), 
+         col = "seagreen", lty = 3, lwd = 1)
+segments(0, -max(iifs[,1]), 
+        iifs$theta[iifs$`1` == max(iifs$`1`)], max(iifs[,1]), 
+         col = "seagreen", lty = 3, lwd = 1)
+
+segments(-7, max(iifs[,2]), 
+         iifs$theta[iifs$`2` == max(iifs$`2`)], max(iifs[,2]), 
+         col = "darkorchid", lty = 3, lwd = 1)
+segments(iifs$theta[iifs$`2` == max(iifs$`2`)], -max(iifs[,2]), 
+        iifs$theta[iifs$`2` == max(iifs$`2`)], max(iifs[,2]), 
+         col = "darkorchid", lty = 3, lwd = 1)
+
+itempargoood = data.frame(a = c(1.5, 1.5), 
+                     b = c(0, 0), 
+                     c = c(0,0), 
+                     e = c(1, 1))
+iifsgood = item_info(itempargoood, theta)
+```
+
+
+### Test Information Function
+
+```{r}
+tif =  data.frame(theta = theta, 
+                      tif = rowSums(iifsgood), 
+                  tiftired = rowSums(iifs[,-3]))
+plot(theta, tif$tif, cex.lab= 2, 
+         main = "Test Information Function - TIF",
+         cex.lab = 1.2, 
+         cex.main = 1.5, 
+ cex.axis=1,
+         xlab = expression(theta), ylab = expression(paste("TIF"[theta])),
+         type = "l", lwd =2,
+         col = "royalblue3")
+lines(theta, tif$tiftired, col = "firebrick", lwd =2)
+```
+
+
+# Relazione tra i modelli
+
+### 
+
+<br>
+
+<br>
+
+- Fissando $d_i = 1$ $\forall i$ $\rightarrow$ si ottiene il 3-PL dal 4-PL
+
+- Fissando $c_i = 0$ $\forall i$ $\rightarrow$ si ottiene il 2-PL dal 3-PL
+
+- Fissando $a_i = 1$ $\forall i$ $\rightarrow$ si ottiene l'1-PL dal 2-PL
+
+<br>
+
+:::{.r-stack}
+Sono tutti modelli annidati!
+:::
+
+### E il modello di Rasch?
+
+<br>
+
+$$P(x_{pi} = 1 |\theta_p,b_i) = \dfrac{\exp (\theta_p -b_i)}{1+ \exp (\theta_p -b_i)}$$
+. . . 
+
+A livello matematico, il modello di Rasch  e l'1-PL sono la stessa cosa 
+
+Come filosofia sottostante, sono due modelli completamente diversi 
+
+
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+**1-PL** 
+:::
+
+Si osserva la fit del modello ai dati $\rightarrow$ Il modello si adatta ai dati e si può scegliere il modello migliore dati i dati
+:::
+
+
+::: {.column width="50%"}
+
+<br>
+
+::: {.r-stack}
+**Rasch**
+:::
+
+Si osserva la fit dei dati al modello $\rightarrow$ Il modello è "vero", vanno modificati i dati per farli stare dentro al modello
+
+
+:::
+
+::::
+
+
+
+### Tutti i modelli sono sbagliati....
+
+...Ma alcuni sono utili
+
+Il modello può essere scelto: 
+
+* A priori: 
+
+  - considerazioni di natura teorica 
+  - caratteristiche degli item stessi 
+  
+* A posteriori: 
+  - Si stimano tutti i modelli IRT sui dati 
+  - Si confrontano e il modello che fitta meglio è il modello scelto
+  
+  
+:::{.callout-tip}
+## Confronto a posteriori basato sugli indici di fit comparativi 
+
+* $-2$*LogLikelihood*: Differenza tra la *LogLikelihood* di due modelli annidati 
+
+* Akaike's Information Criterion
+
+* Bayesian Information Criterion
+
+
+:::
