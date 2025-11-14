@@ -21,3 +21,5 @@ are presented. Questions remain open, like: are these approaches useful on real
 data?
 
 [Slides](irt-stf.html)
+
+[Presentazione 17 Novembre](intro-IRT.html)
