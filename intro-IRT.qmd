@@ -739,16 +739,20 @@ lines(theta, IRT(theta, b=1,
 
 ### 
 
+<br>
+
 Qualsiasi item è più informativo per i soggetti con abilità uguale alla location dell'item $\rightarrow$ al crescere della distanza tra soggetto e item, cala l'informatività 
 
 Tanti soggetti con livelli diversi di abilità $\rightarrow$ item con livelli di difficoltà distribuiti lungo tutto il continuum latente 
+
+<br>
 
 :::: {.columns}
 
 ::: {.column width=50%}
 
 :::{.r-stack}
-IRT
+**IRT**
 :::
 
 Meglio item con difficoltà diverse, sparpagliate lungo tutto il tratto latente
@@ -757,7 +761,7 @@ Meglio item con difficoltà diverse, sparpagliate lungo tutto il tratto latente
 ::: {.column width=50%}
 
 :::{.r-stack}
-CTT
+**CTT**
 :::
 
 
