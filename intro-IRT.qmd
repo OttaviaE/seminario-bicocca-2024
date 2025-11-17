@@ -1150,7 +1150,7 @@ knitr::include_app("https://ottaviae.shinyapps.io/irt-app/", height="1000px")
 
 $$P(x_{pi} = 1| \theta_p, b_i, a_i) = c_i + (1 - c_i) \dfrac{\exp[a_i(\theta_p - b_i)]}{1+\exp[a_i(\theta_p - b_i)]}$$
 
-Il parametro $c_i$ è lo *pseduo-guessing*: Quando $\theta \to -\infty$, $P(x_{pi} = 1) = c_i$
+Il parametro $c_i$ è lo *pseduo-guessing*: Quando $\theta \to -\infty$, $P(x_{pi} = 1) \to c_i$
 
 ```{r}
 #| out-width: "85%"
@@ -1256,7 +1256,7 @@ lines(theta, rowSums(iifg), type = "l",
 
 $$P(x_{pi}= 1| \theta_p, b_i, a_i, c_i, d_i) = c_i + (d_i -c_i) \dfrac{\exp[a_i(\theta_p - b_i)]}{1 + \exp[a_i(\theta_p - b_i)]}$$
 
-Il parametro $d_i$ è la *careless error*: Quando $\theta \to +\infty$, $P(x_{pi}) = d_i$
+Il parametro $d_i$ è la *careless error*: Quando $\theta \to +\infty$, $P(x_{pi} =1) \to d_i$
 
 ::: {.r-stack}
 ::: {.fragment .fade-in-then-out}
