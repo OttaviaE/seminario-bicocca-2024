@@ -189,14 +189,19 @@ Focus $\rightarrow$ Test
 
 <br>
 
-La probabilità di una risposta osservata (variabile manifesta) dipende sia dalle caratteristiche della persona sia dalle caratteristiche dell’item
+La probabilità di una risposta osservata (**variabile manifesta**) dipende sia dalle caratteristiche della persona sia dalle caratteristiche dell’item
 
-Le caretteristiche della <span style="color:#9B0014;">persona</span> possono essere descittre da un parametro relativo alla persona  $\rightarrow$  Costrutto Latente (e.g., intelligenza, Ansia, ecc.)
+<br>
 
+Le caratteristiche della <span style="color:#9B0014;">persona</span> possono essere descritte da un parametro relativo alla persona  $\rightarrow$  *Costrutto Latente* (e.g., intelligenza, Ansia, ecc.)
 
-Le caratteristiche dell’item possono essere descritte da uno o più parametri (**difficoltà**, **discriminatività**, **guessing**, **careless error**)
+<br>
 
-Le caratteristihce degli item e della persona stanno sullo stesso tratto latente 
+Le caratteristiche dell’<span style="color:#006A5A;">item</span> possono essere descritte da uno o più parametri (**difficoltà**, **discriminatività**, **guessing**, **careless error**)
+
+<br>
+
+Le caratteristiche degli item e della persona stanno sullo stesso tratto latente 
 
 
 ## A ognuno il suo... modello IRT 
@@ -205,24 +210,12 @@ Le caratteristihce degli item e della persona stanno sullo stesso tratto latente
 
 Diversi modelli IRT a seconda del: 
 
-- **Tratto Latente**: 
-
-::: {.fragment .highlight-red fragment-index=2}
-
+* **Tratto Latente**: 
   - Modelli unidimensionali
-
-:::
-
   - Modelli multidimensionali
   
-- **Categorie di risposta**: 
-
-::: {.fragment .highlight-red fragment-index=2}
-
+* **Categorie di risposta**: 
   - Item con risposta dicotomica (e.g., true/false, agree/disagree)
-
-:::
-
   - Item con risposta politomica (almeno tre categorie di risposta, e.g., Likert-type scale)
 
 # Assunzioni dei modelli IRT 
@@ -235,7 +228,7 @@ Diversi modelli IRT a seconda del:
 2. Unidimensionalità
 
 ::: {.fragment .highlight-red}
-3. Inidpendenza locale
+3. Indipendenza locale
 :::
 
 . . . 
@@ -250,7 +243,7 @@ Se le assunzioni vengono violate, il modello può sempre essere fittato, ma la s
 La probabilità di rispondere correttamente agli item aumenta all'aumentare del livello del tratto latente
 
 
-Se questa assunzione viene violata, si hanno dei porblemi a livello di validità e attendibilità della misura
+Se questa assunzione viene violata, si hanno dei problemi a livello di validità e attendibilità della misura
 
 
 . . .
@@ -394,12 +387,16 @@ ggplot(myprop,
 ### 
 
 L’assunzione di **unidimensionalità** indica che un solo tratto latente è responsabile delle risposte agli item
+<br>
 
 ```{r}
 #| layout-ncol: 2
-
 #| warning: false
 #| message: false
+#| fig-cap: "Matrici di correlazione per testare l'unidimensionalità"
+#| fig-subcap: 
+#|    - "Monodimensionale"
+#|    - "Multidimensionale"
 
 
 # ------------------------------------------------------------
@@ -504,6 +501,10 @@ L’assunzione di **indipendenza locale** indica che non esiste alcuna relazione
 
 ```{r}
 #| layout-ncol: 2
+#| fig-cap: "Matrice di correlazione tra i residui standardizzati"
+#| fig-subcap: 
+#|    - "Item senza dipendenza locale"
+#|    - "Item con dipendenza locale"
 library(MASS)
 
 set.seed(123)
@@ -591,6 +592,8 @@ ggplot(df_dep, aes(Var1, Var2, fill = value)) +
 
 
 Si distinguono in base al numero di parametri che descrivono le caratteristiche degli item: 
+
+<br>
 
 * Modello logistico a un parametro (one-parameter logistic model; 1PL) Analogo al modello di Rasch (a un GLM...)
 
@@ -700,12 +703,12 @@ Misura della precisione con cui ogni item misura diversi livello del tratto late
 
 $$IIF_i(\theta) = P_i(\theta,b_i)Q_i(\theta, b_i)$$
 
-dove chiaramente $Q = 1−P_i($\theta_i,b_i$)$ è la probabilità che di risposta errata all’item $i$
+dove chiaramente $Q = 1−P_i(\theta_i,b_i)$ è la probabilità che di risposta errata all’item $i$
 
 ### 
 
 
-Valore massimo quando $\theta_p = b_i$ $\rightarrow$ $P(x_{pi}=1) = P(x_{pi}=0) =0.50$ $\rightarrow$ $I_i = .25$
+Valore massimo quando $\theta_p = b_i$ $\rightarrow$ $P(x_{pi}=1) = P(x_{pi}=0) =0.50$ $\rightarrow$ $\max IIF_i = .25$
 
 
 ```{r prova}
@@ -743,14 +746,19 @@ Tanti soggetti con livelli diversi di abilità $\rightarrow$ item con livelli di
 :::: {.columns}
 
 ::: {.column width=50%}
+
+:::{.r-stack}
 IRT
+:::
 
 Meglio item con difficoltà diverse, sparpagliate lungo tutto il tratto latente
 :::
 
 ::: {.column width=50%}
 
+:::{.r-stack}
 CTT
+:::
 
 
 Meglio item con difficoltà omogenee
@@ -765,7 +773,7 @@ Meglio item con difficoltà omogenee
 \vspace*{-15mm}
 
 ```{r}
-
+par(mar = c(5,7,4,2) + 0.1) 
 b = seq(-2.5, 2.5, length = 5)
 a = rep(1, length(b))
 ipar = data.frame(b,a)
@@ -814,7 +822,7 @@ for ( i in 2:length(b)) {
 
 Restituisce una misura dell'accuratezza con cui il test misura complessivamente il tratto latente: 
 
-$$TIF(\theta) = \sum IIF_i(\theta, b_i) = $$
+$$TIF(\theta) = \sum_{i=1}^{I} IIF_i(\theta, b_i)$$
 
 La TIF permette di prevedere l’accuratezza con cui è
 possibile misurare ogni livello di tratto latente
@@ -825,9 +833,10 @@ Simile al concetto di attendibilità in CTT
 
 
 ```{r}
+par(mar = c(5,7,4,2) + 0.1) 
 plot(theta, rowSums(iif), cex.lab= 2, 
      cex.axis =1.5,
-       xlab = expression(theta), ylab = "Informazione", 
+       xlab = expression(theta), ylab = "TIF", 
      type = "l", lwd =2, 
      col = "black", ylim = c(0,1))
 
@@ -846,14 +855,14 @@ for ( i in 1:length(b)) {
 
 Descrive la precisione della misurazione: 
 
-$$SEM(\theta) = \sqrt{\dfrac{1}{I(\theta)}} = \sqrt{\dfrac{1}{P_i(\theta, b_i)Q_i(\theta, b_i)}} $$
+$$SEM(\theta) = \sqrt{\dfrac{1}{TIF(\theta)}}$$
 Maggiore è l'informazione, minore è il SEM
 
 Minore è l'informazione, maggiore è il SEM
 
 A differenza della CTT, non si assume che l'errore di misura sia uguale per tutti i soggetti
 
-### 
+### Relazione TIF e SEM
 
 <br>
 
@@ -862,9 +871,10 @@ A differenza della CTT, non si assume che l'errore di misura sia uguale per tutt
 ```{r}
 #| layout-ncol: 2
 sum_info = rowSums(iif)
+par(mar = c(5,7,4,2) + 0.1) 
 plot(theta, sum_info, cex.lab= 2, 
      cex.axis =1.5,
-       xlab = expression(theta), ylab = "SEM", 
+       xlab = expression(theta), ylab = "TIF", 
      type = "l", lwd =2, 
      col = "darkblue", main = "TIF", cex.main = 3)
 
@@ -1007,6 +1017,7 @@ plot(theta1, IRT(theta1, a = 200, b = 0),
 ## $a < 0$
 
 ```{r}
+par(mar = c(5,7,4,2) + 0.1) 
 plot(theta, IRT(theta, a = -1.5, b = 0), 
      type = "l", 
      ylab = expression(paste("P(", x[p][i],  "= 1|", theta[p], ", ", b[i], ", ", a[i],  ")")), 
@@ -1023,6 +1034,7 @@ plot(theta, IRT(theta, a = -1.5, b = 0),
 
 
 ```{r}
+par(mar = c(5,7,4,2) + 0.1) 
 a = c(0.5, 0.9, 1.5, 1.5)
 b = c(rep(0, (length(a) -1)), 2)
 
@@ -1088,7 +1100,7 @@ $$IIF_i(\theta) = a_i^2P_i(\theta, b_i, a_i)Q_i(\theta, b_i, a_i)$$
 ```{r}
 #| fig-align: center
 #| out-width: 70%
-
+par(mar = c(5,7,4,2) + 0.1) 
 iif = item_info(data.frame(b, a), theta = theta)
 
 plot(theta, iif[,1], type = "l", col =my_colors[1], lwd = 2, cex.lab= 2, 
@@ -1133,7 +1145,7 @@ knitr::include_app("https://ottaviae.shinyapps.io/irt-app/", height="1000px")
 
 $$P(x_{pi} = 1| \theta_p, b_i, a_i) = c_i + (1 - c_i) \dfrac{\exp[a_i(\theta_p - b_i)]}{1+\exp[a_i(\theta_p - b_i)]}$$
 
-Il parametro $c_i$ è lo *pseduo-guessing*: Quando $\theta \to -\infty$, $P(x_{pi}) = c_i$
+Il parametro $c_i$ è lo *pseduo-guessing*: Quando $\theta \to -\infty$, $P(x_{pi} = 1) = c_i$
 
 ```{r}
 #| out-width: "85%"
@@ -1178,7 +1190,7 @@ abline(h=.5, lty =5, col ="grey")
 ### Item Information Function
 
 ```{r}
-
+par(mar = c(5,7,4,2) + 0.1) 
 # calcola l'IIF per un item specifico
 i_info <- function(b, a=1,c=0, e= 1,  theta = seq(-5,5,length.out=1000)){
       P = IRT(theta, b = b, a = a, e = e, c=c)
@@ -1370,6 +1382,12 @@ plot(theta, tif$tif, cex.lab= 2,
 lines(theta, tif$tiftired, col = "firebrick", lwd =2)
 ```
 
+### L'influenza della careless error
+
+```{r}
+knitr::include_app("https://ottaviae.shinyapps.io/app-tired/", height="1000px")
+```
+
 
 # Relazione tra i modelli
 
@@ -1396,7 +1414,6 @@ Sono tutti modelli annidati!
 <br>
 
 $$P(x_{pi} = 1 |\theta_p,b_i) = \dfrac{\exp (\theta_p -b_i)}{1+ \exp (\theta_p -b_i)}$$
-. . . 
 
 A livello matematico, il modello di Rasch  e l'1-PL sono la stessa cosa 
 
