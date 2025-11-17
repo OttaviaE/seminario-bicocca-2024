@@ -703,7 +703,7 @@ Misura della precisione con cui ogni item misura diversi livello del tratto late
 
 $$IIF_i(\theta) = P_i(\theta,b_i)Q_i(\theta, b_i)$$
 
-dove chiaramente $Q = 1−P_i(\theta_i,b_i)$ è la probabilità che di risposta errata all’item $i$
+dove chiaramente $Q = 1−P_i(\theta_i,b_i)$ è la probabilità di risposta errata all’item $i$
 
 ### 
 
