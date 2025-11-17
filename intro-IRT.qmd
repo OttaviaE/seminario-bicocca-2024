@@ -85,7 +85,7 @@ set.seed(999)
 
 - Variabili che *non si possono osservare direttamente* $\rightarrow$ **Variabili Latenti** (e.g., Intelligenza, Depressione, Ansia, Estroversione)
 
-- Infeirte dagli indicatori $\rightarrow$ **Variabili Osservate** (e.g., risposte alle matrici di Raven)
+- Inferite dagli indicatori $\rightarrow$ **Variabili Osservate** (e.g., risposte alle matrici di Raven)
 
 <br>
 
@@ -146,14 +146,10 @@ Sia i modelli dell’IRT sia la Classical Test Theory (CTT) hanno come obiettivo
 
 > Stabilire la posizione delle persone sul tratto latente di interesse e il loro ordinamento
 
-<br>
-
 
 :::: {.columns}
 
 ::: {.column width="50%"}
-
-<br>
 
 ::: {.r-stack}
 **IRT**
@@ -169,7 +165,6 @@ Focus $\rightarrow$ Items
 
 ::: {.column width="50%"}
 
-<br>
 
 ::: {.r-stack}
 
