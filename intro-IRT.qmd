@@ -233,7 +233,7 @@ Diversi modelli IRT a seconda del:
 
 . . . 
 
-Se le assunzioni vengono violate, il modello può sempre essere fittato, ma la sua interpretazione e l'intepretazione delle sue stime sono prive di significato
+Se le assunzioni vengono violate, il modello può sempre essere fittato, ma la sua interpretazione e l'interpretazione delle sue stime sono prive di significato
 
 
 ## Monotonicità
