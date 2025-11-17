@@ -119,7 +119,7 @@ Modelli matematici che permettono di collegare le variabili latenti con le varia
 
 Assunzioni: 
 
--  Le variabili latenti sono la "causa" della variabilità nelle varibaili osservate
+-  Le variabili latenti sono la "causa" della variabilità nelle variabili osservate
 
 - *Indipendenza Locale*: Una volta presa in considerazione l’effetto della variabile latente, la correlazione tra le variabili manifeste svanisce
 
