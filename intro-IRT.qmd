@@ -8,6 +8,7 @@ format:
     theme: mytheme.scss
     logo: "www/psicostat.jpg"
     footer: "Lezione @ Milano-Bicocca"
+    self-contained: true
 # background-opacity: "0.45"
 #    data-background-size: 400px, cover
 #    data-background-position: 50% 10%, center
